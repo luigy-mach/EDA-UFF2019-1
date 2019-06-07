@@ -143,6 +143,15 @@ void busca(TAG* pNo, int cod, TAG** ppNo){
     busca(pNo->proxIrmao, cod,ppNo);    
 }
 
+int pertenece(TAG* pNo, int cod){
+	int t = 0;
+	if (!pNo) return 0;
+	if (pNo->cod == cod) return 1;
+	t+=pertenece(pNo->primFilho,cod);
+	t+=pertenece(pNo->proxIrmao,cod);
+	return t;
+}
+
 TAG* insere(TAG* t, int cod, TFIG* info){
     if (!t){
         t = criaNodo(cod,info);
@@ -199,40 +208,62 @@ void busca_antecesor(TAG* pNo, int cod, TAG** ppAnt){
 }
 
 TAG* retira(TAG* t, int ant_pai, int novo_pai){
-	TAG* temp = t;
-	TAG** ppNoAPai = (TAG**)malloc(sizeof(TAG*));
-	TAG** ppNoNPai = (TAG**)malloc(sizeof(TAG*));
-	TAG** ppNoAnt = (TAG**)malloc(sizeof(TAG*));
+	TAG* atemp = t;
+	TAG** ppP1 = (TAG**)malloc(sizeof(TAG*));
+	TAG** ppP2 = (TAG**)malloc(sizeof(TAG*));
+	TAG** ppAP1 = (TAG**)malloc(sizeof(TAG*));
+	TAG** ppAP2 = (TAG**)malloc(sizeof(TAG*));
 
-	busca(temp, ant_pai, ppNoAPai);
-	busca(temp, novo_pai, ppNoNPai);
-	busca_antecesor(temp, ant_pai, ppNoAnt);
+	busca(atemp, ant_pai, ppP1);
+	busca(atemp, novo_pai, ppP2);
+	busca_antecesor(atemp, ant_pai, ppAP1);
+	busca_antecesor(atemp, novo_pai, ppAP2);
 
-	TAG* pNoA = *ppNoAPai;
-	TAG* pUltimoIr = *ppNoNPai;
-	TAG* pUltimoFi = *ppNoNPai;
-	TAG* pNoAnt = *ppNoAnt;
+	TAG* p1 = *ppP1;
+	TAG* p2 = *ppP2;
+	TAG* pp1 = *ppAP1;
+	TAG* pp2 = *ppAP2;
 
-	if (!(pUltimoFi->primFilho)){
-		pUltimoFi->primFilho = pNoA->primFilho;
-	} else {
-		pUltimoFi = pUltimoFi->primFilho;
-		while(pUltimoFi->proxIrmao) pUltimoFi = pUltimoFi->proxIrmao;
-		pUltimoFi->proxIrmao = pNoA->primFilho;
+	if (pertenece(p1,p2->cod)==1){
+		int tempcod = p1->cod;
+		p1->cod = p2->cod;
+		p2->cod = tempcod;
+
+		TFIG* t = p1->info;
+		p1->info = p2->info;
+		p2->info = t;
+
+		TAG* x = p1;
+		p1 = p2;
+		p2 = x;
+
+		x = pp1;
+		pp1 = pp2;
+		pp2 = x;
 	}
 
-	if (pNoA->proxIrmao == pNoAnt->proxIrmao->proxIrmao){
-		pNoAnt->proxIrmao = pNoA->proxIrmao;
-	} else {
-		while(pUltimoIr->proxIrmao) pUltimoIr = pUltimoIr->proxIrmao;
-		pUltimoIr->proxIrmao = pNoA->proxIrmao;
-		pNoAnt->primFilho = NULL;
+	if(pp1->proxIrmao == p1)
+		pp1->proxIrmao = NULL;
+	else if(pp1->primFilho == p1)
+		pp1->primFilho = NULL;
+
+	TAG* temp = p2;
+	while(temp->proxIrmao) temp = temp->proxIrmao;
+	temp->proxIrmao = p1->proxIrmao;
+
+	temp = p2;
+	if (!(temp->primFilho))
+		temp->primFilho = p1->primFilho;
+	else{
+		temp = temp->primFilho;
+		while(temp->proxIrmao) temp = temp->proxIrmao;
+		temp->proxIrmao = p1->primFilho;
 	}
 
-	pNoA->proxIrmao = NULL;
-	pNoA->primFilho = NULL;
+	p1->proxIrmao = NULL;
+	p1->primFilho = NULL;	
 
-	free(pNoA);
+	free(p1);
 
 	return t;
 }
@@ -344,7 +375,8 @@ int main(void){
 	TAG* t = NULL;
 	t = carrega(t,"data.txt");
 	//imprimir_rec(t);
-	//t = retira(t,4,9);
+	t = retira(t,4,9);
 	imprimir_arquivo(t,"arvolGen.dot");
+
 	return 0;
 }
