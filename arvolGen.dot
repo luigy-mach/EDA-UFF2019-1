@@ -1,0 +1,33 @@
+digraph structs {
+nodesep=.5;
+node [shape=record];
+1 [shape=record,label="{<f0> COD:1 |{{TRI|b: 3, h: 2|Area: 3.00 }|<f1> Irmao}|<f2> Filhos}"];
+2 [shape=record,label="{<f0> COD:2 |{{RET|b: 3, h: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+3 [shape=record,label="{<f0> COD:3 |{{TRA|b: 2, B: 3, h: 4|Area: 10.00 }|<f1> Irmao}|<f2> Filhos}"];
+10 [shape=record,label="{<f0> COD:10 |{{TRI|b: 1, h: 2|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+6 [shape=record,label="{<f0> COD:6 |{{RET|b: 2, h: 2|Area: 4.00 }|<f1> Irmao}|<f2> Filhos}"];
+5 [shape=record,label="{<f0> COD:5 |{{QUA|l: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+9 [shape=record,label="{<f0> COD:9 |{{QUA|l: 1|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+7 [shape=record,label="{<f0> COD:7 |{{TRA|b: 1, B: 2, h: 3|Area: 4.50 }|<f1> Irmao}|<f2> Filhos}"];
+8 [shape=record,label="{<f0> COD:8 |{{CIR|r: 2|Area: 12.56 }|<f1> Irmao}|<f2> Filhos}"];
+
+1  -> 2  -> 6 ;
+5  -> 7 ;
+8 ;
+
+9 ;
+
+3 ;
+10 ;
+
+
+
+{rank=same; 2-> 3 -> 10;}
+
+
+{rank=same; 6-> 5 -> 9;}
+
+{rank=same; 7 -> 8;}
+
+
+}
