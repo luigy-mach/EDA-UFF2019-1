@@ -565,7 +565,8 @@ TAVL* transformaAVL(TAG* t, TAVL* t2){
     if (!t) return t2;
     t2 = insereAVL(t,t2);
     t2 = transformaAVL(t->primFilho, t2);
-    t2 = transformaAVL(t->proxIrmao, t2);    
+    t2 = transformaAVL(t->proxIrmao, t2);
+    return t2; //////////////////////////////// REVISAR //////////////////////////////////////////////////////////////////////////////
 }
 
 void imprimir_recAVL(TAVL* t2){
@@ -636,6 +637,238 @@ void imprimir_arquivoAVL(TAVL* t2, char* new_filename){
     imprimir_esqAVL(t2, fp);
     fprintf(fp, "\n" );
     imprimir_dirAVL(t2, fp);
+    //fprintf(fp, "\n" );
+    //imprimir_filhos(pNo, fp);
+    //fprintf(fp,"\n");
+    //imprimir_rank(pNo,fp);
+    fprintf(fp, "}" );
+
+    fclose(fp);
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+const int n = 2;
+
+typedef struct ArvB{
+  int nchaves, folha, *chave;
+  struct ArvB **filho;
+}TAB;
+
+TAB *criaB(int n){
+  TAB* novo = (TAB*)malloc(sizeof(TAB));
+  novo->nchaves = 0;
+  novo->chave =(int*)malloc(sizeof(int*)*((n*2)-1));
+  novo->folha=1;
+  novo->filho = (TAB**)malloc(sizeof(TAB*)*n*2);
+  int i;
+  for(i=0; i<(n*2); i++) novo->filho[i] = NULL;
+  return novo;
+}
+
+TAB *buscaB(TAB* x, int ch){
+  TAB *resp = NULL;
+  if(!x) return resp;
+  int i = 0;
+  while(i < x->nchaves && ch > x->chave[i]) i++;
+  if(i < x->nchaves && ch == x->chave[i]) return x;
+  if(x->folha) return resp;
+  return buscaB(x->filho[i], ch);
+}
+
+TAB *inicializaB(){
+  return NULL;
+}
+
+TAB *divisaoB(TAB *x, int i, TAB* y, int n){
+  TAB *z=criaB(n);
+  z->nchaves= n - 1;
+  z->folha = y->folha;
+  int j;
+  for(j=0;j<n-1;j++) z->chave[j] = y->chave[j+n];
+  if(!y->folha){
+    for(j=0;j<n;j++){
+      z->filho[j] = y->filho[j+n];
+      y->filho[j+n] = NULL;
+    }
+  }
+  y->nchaves = n-1;
+  for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
+  x->filho[i] = z;
+  for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
+  x->chave[i-1] = y->chave[n-1];
+  x->nchaves++;
+  return x;
+}
+
+
+TAB *insere_Nao_CompletoB(TAB *x, int k, int n){
+  int i = x->nchaves-1;
+  if(x->folha){
+    while((i>=0) && (k<x->chave[i])){
+      x->chave[i+1] = x->chave[i];
+      i--;
+    }
+    x->chave[i+1] = k;
+    x->nchaves++;
+    return x;
+  }
+  while((i>=0) && (k<x->chave[i])) i--;
+  i++;
+  if(x->filho[i]->nchaves == ((2*n)-1)){
+    x = divisaoB(x, (i+1), x->filho[i], n);
+    if(k>x->chave[i]) i++;
+  }
+  x->filho[i] = insere_Nao_CompletoB(x->filho[i], k, n);
+  return x;
+}
+
+
+TAB *insereB(TAB *T, TAG* tag, int n){
+  int cod = tag->cod;
+  if(buscaB(T,cod)) return T;
+  if(!T){
+    T=criaB(n);
+    T->chave[0] = cod;
+    T->nchaves=1;
+    return T;
+  }
+  if(T->nchaves == (2*n)-1){
+    TAB *S = criaB(n);
+    S->nchaves=0;
+    S->folha = 0;
+    S->filho[0] = T;
+    S = divisaoB(S,1,T,n);
+    S = insere_Nao_CompletoB(S,cod,n);
+    return S;
+  }
+  T = insere_Nao_CompletoB(T,cod,n);
+  return T;
+}
+
+TAB* transformaB(TAG* tag, TAB* t3, int n){
+    if (!tag) return t3;
+    t3 = insereB(t3,tag,n);
+    t3 = transformaB(tag->primFilho, t3, n);
+    t3 = transformaB(tag->proxIrmao, t3, n);    
+}
+
+void imprimeB(TAB *a, int andar){
+  if(a){
+    int i,j;
+    for(i=0; i<=a->nchaves-1; i++){
+      imprimeB(a->filho[i],andar+1);
+      for(j=0; j<=andar; j++) printf("   ");
+      printf("%d\n", a->chave[i]);
+    }
+    imprimeB(a->filho[i],andar+1);
+  }
+}
+
+/*void imprimir_infoB(TAB* t3, FILE *fp){
+    if (!t3) return;
+
+    /*if (strcmp(t2->info->nom,"TRI") == 0)
+        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
+    else if (strcmp(t2->info->nom,"RET") == 0)
+        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
+    else if (strcmp(t2->info->nom,"TRA") == 0)
+        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, B: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->param3,t2->area);
+    else if (strcmp(t2->info->nom,"CIR") == 0)
+        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|r: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
+    else if (strcmp(t2->info->nom,"QUA") == 0)
+        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|l: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
+    
+
+    imprimir_infoB(t->esq,fp);
+    imprimir_infoB(t2->dir,fp);    
+}
+
+void imprimir_esqAVL(TAVL* t2, FILE *fp){
+    if (!t2){
+        return;
+    } 
+    if (t2->esq){
+        fprintf(fp,"%d:f1 -> %d;\n", t2->cod, t2->esq->cod);    
+    }
+    imprimir_esqAVL(t2->esq,fp);
+    imprimir_esqAVL(t2->dir,fp);    
+}
+
+
+void imprimir_dirAVL(TAVL* t2, FILE *fp){
+    if (!t2){
+        return;
+    } 
+    if (t2->dir){
+        fprintf(fp,"%d:f2 -> %d;\n", t2->cod, t2->dir->cod);    
+    }
+    imprimir_dirAVL(t2->dir,fp);    
+    imprimir_dirAVL(t2->esq,fp);
+}*/
+
+void imprime2(TAB *a, int andar, FILE *fp){
+  static int id_nod = 0;
+  if(a){
+    int i,j;
+    fprintf(fp, "%d [shape=record,label=\"{{",id_nod);
+    for (i=0; i<(n*2)-1; i++){
+        fprintf(fp,"<f%d>",i);
+        if (i<=a->nchaves-1){
+            fprintf(fp,"| %d |", a->chave[i]);
+        } else {
+            fprintf(fp,"| - |");
+        }
+    }
+    id_nod++;
+    fprintf(fp,"<f%d>}}\"];\n",i);
+
+    for(i=0; i<=a->nchaves-1; i++){
+      imprime2(a->filho[i],andar+1,fp);
+            
+    }
+    imprime2(a->filho[i],andar+1,fp);
+  }
+}
+
+void imprime3(TAB *a, int andar, FILE *fp){
+  static int id_nod2 = 0;
+  if(a){
+    int i,j;
+    for(i=0; i<=a->nchaves-1; i++){
+        fprintf(fp, "%d:<f%d> -> %d:<f0>;\n",id_nod2,i,id_nod2+1);
+
+      imprime3(a->filho[i],andar+1,fp);            
+    id_nod2++;
+    }
+    imprime3(a->filho[i],andar+1,fp);
+  }
+}
+
+
+
+void imprimir_arquivoB(TAB* t3, char* new_filename){
+    FILE *fp = fopen(new_filename, "w");
+    if (fp == NULL){
+        puts("Arquivo nao abierto\n");
+        return;
+    }
+    fprintf(fp,"digraph structs {\n");
+    fprintf(fp,"nodesep=.5;\n");
+    fprintf(fp,"node [shape=record];\n");
+    imprime2(t3,0,fp);
+    fprintf(fp, "\n");
+    imprime3(t3,0,fp);
+    /*imprimir_infoAVL(t2,fp);
+    fprintf(fp, "\n" );
+    imprimir_esqAVL(t2, fp);
+    fprintf(fp, "\n" );
+    imprimir_dirAVL(t2, fp);*/
     //fprintf(fp, "\n" );
     //imprimir_filhos(pNo, fp);
     //fprintf(fp,"\n");
@@ -1015,14 +1248,19 @@ void tranformar_b(){
 int main(){
     TAG* t = NULL;
     TAVL* t2 = NULL;
+    TAB* t3 = NULL;    
     t = carrega(t,"data.txt");
-    int i;
+    t3 = transformaB(t,t3,n);
+    //imprimeB(t3,0);
+    imprimir_arquivoB(t3,"arvolB.dot");
+    
+    /*int i;
     char key[2] ;
     while(1){
         printf("\033[2J");
         printf("\033[1;1H"); 
         //printf("Elija su opcion: \e[31mRed\n");
-        printf("\t\t\t\t\e[31m@Roger Ripas && @Luigy Machaca \e[00m \n");
+        printf("\t\t\t\t\e[33;1m@Roger Ripas && @Luigy Machaca \e[00m \n");
         printf("=======================================================================================\n");
         printf("ARVOL GENERICO: \n");
         printf("\t(a) Buscar figura geométrica\n");
@@ -1092,6 +1330,6 @@ int main(){
                 //system("pause");
                 break;
         }
-    }
+    }*/
     return 0;
 }
