@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* TYPEDEF GERAL FIGURE*/
+
 typedef struct figure{
   int cod;
   int pai;
@@ -9,11 +11,27 @@ typedef struct figure{
   int param1;
   int param2;
   int param3;
+  double area;
 } TFIG;
+
+/* LEITURA DO ARQUIVO */
 
 int tam = 0;
 TFIG *v = NULL;
-TFIG *read_txt(char *filename){    
+
+TFIG* resizeVetFig(TFIG* v, int novotam){
+    v = (TFIG*) realloc(v,sizeof(TFIG)*(novotam+1));
+    v[novotam].cod = 0;
+    v[novotam].pai = 0;
+    strcpy(v[novotam].nom," ");
+    v[novotam].param1 = 0;
+    v[novotam].param2 = 0;
+    v[novotam].param3 = 0;
+    
+    return v;
+}
+
+TFIG* criarVetFig(){
     v = (TFIG*) malloc(sizeof(TFIG));
     v[0].cod = 0;
     v[0].pai = 0;
@@ -21,7 +39,12 @@ TFIG *read_txt(char *filename){
     v[0].param1 = 0;
     v[0].param2 = 0;
     v[0].param3 = 0;
+    
+    return v;
+}
 
+TFIG *read_txt(char *filename){    
+    v = criarVetFig();
     FILE *filePointer;
     char ch;
 
@@ -92,13 +115,7 @@ TFIG *read_txt(char *filename){
                 item[2] = ' ';
             }
             tam++;
-            v = (TFIG*) realloc(v,sizeof(TFIG)*(tam+1));
-            v[tam].cod = 0;
-            v[tam].pai = 0;
-            strcpy(v[tam].nom," ");
-            v[tam].param1 = 0;
-            v[tam].param2 = 0;
-            v[tam].param3 = 0;
+            v = resizeVetFig(v,tam);            
             k = 0;
             j = 0;
             continue;
@@ -112,166 +129,81 @@ TFIG *read_txt(char *filename){
     return v;
 }
 
-typedef struct arvolGenerico{
-    int cod;
+
+
+/*********************************************************************************************/
+/************************************** ARVORE GENERICA **************************************/
+/*********************************************************************************************/
+
+typedef struct arvoreGenerica{
     TFIG* info;
-    double area;
-    struct arvolGenerico *primFilho;
-    struct arvolGenerico *proxIrmao;
+    struct arvoreGenerica *primFilho;
+    struct arvoreGenerica *proxIrmao;
 } TAG;
 
-TAG* criaNodo(int cod, TFIG* info){
+TAG *inicializaAG(){
+  return NULL;
+}
+
+TAG* criaNodoAG(int cod, TFIG* info){
     TAG* novo = (TAG*) malloc(sizeof(TAG));
-    novo->cod = cod;
     novo->info = info; 
-    if (strcmp(novo->info->nom,"TRI") == 0) novo->area = (novo->info->param1) * (novo->info->param2)/2;
-    else if (strcmp(novo->info->nom,"RET") == 0) novo->area = (novo->info->param1) * (novo->info->param2);
-    else if (strcmp(novo->info->nom,"TRA") == 0) novo->area = ((novo->info->param1 + novo->info->param2)/2.0) * (novo->info->param3);
-    else if (strcmp(novo->info->nom,"CIR") == 0) novo->area = 3.14 * (novo->info->param1) * (novo->info->param1);
-    else if (strcmp(novo->info->nom,"QUA") == 0) novo->area = (novo->info->param1) * (novo->info->param1);      
+    if (strcmp(novo->info->nom,"TRI") == 0) novo->info->area = (novo->info->param1) * (novo->info->param2)/2;
+    else if (strcmp(novo->info->nom,"RET") == 0) novo->info->area = (novo->info->param1) * (novo->info->param2);
+    else if (strcmp(novo->info->nom,"TRA") == 0) novo->info->area = ((novo->info->param1 + novo->info->param2)/2.0) * (novo->info->param3);
+    else if (strcmp(novo->info->nom,"CIR") == 0) novo->info->area = 3.14 * (novo->info->param1) * (novo->info->param1);
+    else if (strcmp(novo->info->nom,"QUA") == 0) novo->info->area = (novo->info->param1) * (novo->info->param1);      
     novo->primFilho = NULL;
     novo->proxIrmao = NULL;
     return novo;
 }
 
-void busca(TAG* pNo, int cod, TAG** ppNo){
+void localizaEnderecoAG(TAG* pNo, int cod, TAG** ppNo){ // pNo y ppNo
     if (!pNo) return;
-    if (pNo->cod == cod){
+    if (pNo->info->cod == cod){
         *ppNo = pNo;
         return ;
     } 
-    busca(pNo->primFilho, cod,ppNo);
-    busca(pNo->proxIrmao, cod,ppNo);    
+    localizaEnderecoAG(pNo->primFilho, cod,ppNo);
+    localizaEnderecoAG(pNo->proxIrmao, cod,ppNo);    
 }
 
 int bs_flag = 0;
-void busca_simnao(TAG* t, int cod){
+void buscaSimNaoAG(TAG* t, int cod){
     if (!t) return;
-    if (t->cod == cod){
+    if (t->info->cod == cod){
         bs_flag = 1;
     } 
-    busca_simnao(t->primFilho, cod);
-    busca_simnao(t->proxIrmao, cod);  
+    buscaSimNaoAG(t->primFilho, cod);
+    buscaSimNaoAG(t->proxIrmao, cod);  
 }
 
-void altera_figuraAG(TAG* t, int cod){
-    if (!t) return;
-    if (t->cod == cod){
-        int nparam1 = 0, nparam2 = 0, nparam3 = 0;
-        if (strcmp(t->info->nom,"TRI") == 0){
-            printf("\tCodigo pertencente a TRI\n");
-            printf("\t(>) Insira nova base e nova altura: \n");
-            printf("\t  (ex: 3 7 )\n");
-            printf("\t  (ex: 7 5 )\n");
-            printf("\t>>     ");
-            scanf(" %d %d",&nparam1,&nparam2);
-            t->info->param1 = nparam1;
-            t->info->param2 = nparam2;
-            t->area = (nparam1 * nparam2)/2;
-        }
-        else if (strcmp(t->info->nom,"RET") == 0){
-            printf("\tCodigo pertencente a RET\n");
-            printf("\t(>) Insira nova base e nova altura: \n");
-            printf("\t  (ex: 4 8  )\n");
-            printf("\t  (ex: 3 10 )\n");
-            printf("\t>>     ");
-            scanf(" %d %d",&nparam1,&nparam2);
-            t->info->param1 = nparam1;
-            t->info->param2 = nparam2;
-            t->area = nparam1 * nparam2;
-        }
-        else if (strcmp(t->info->nom,"TRA") == 0){
-            printf("\tCodigo pertencente a TRA\n");
-            printf("\t(>) Insira nova base menor, nova base mayor e nova altura: \n");
-            printf("\t  (ex: 5 9 15 )\n");
-            printf("\t  (ex: 3 5 8  )\n");
-            printf("\t>>     ");
-            scanf(" %d %d %d",&nparam1,&nparam2,&nparam3);
-            t->info->param1 = nparam1;
-            t->info->param2 = nparam2;
-            t->info->param3 = nparam3;
-            t->area = ((nparam1 + nparam2)/2)*nparam3;
-        }
-        else if (strcmp(t->info->nom,"CIR") == 0){
-            printf("\tCodigo pertencente a CIR\n");
-            printf("\t(>) Insira novo raio: \n");
-            printf("\t  (ex: 3 )\n");
-            printf("\t  (ex: 7 )\n");
-            printf("\t>>     ");
-            scanf(" %d",&nparam1);
-            t->info->param1 = nparam1;
-            t->area = 3.14 * nparam1 * nparam1;
-        }
-        else if (strcmp(t->info->nom,"QUA") == 0){
-            printf("\tCodigo pertencente a QUA\n");
-            printf("\t(>) Insira novo lado: \n");
-            printf("\t  (ex: 8  )\n");
-            printf("\t  (ex: 10 )\n");
-            printf("\t>>     ");
-            scanf(" %d",&nparam1);
-            t->info->param1 = nparam1;
-            t->area = nparam1 * nparam1;
-        }
-        printf("=======================================================================================\n");
-        printf("\n");
-        printf("\tDimensões alteradas!\n");
-        printf("\n=======================================================================================\n");
-        printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
-    }
-    altera_figuraAG(t->primFilho,cod);
-    altera_figuraAG(t->proxIrmao,cod);
+int ePredecesorAG(TAG* t, int cod){
+    int i = 0;
+    if (!t) return 0;
+    if (t->info->cod == cod) return 1;
+    i+=ePredecesorAG(t->primFilho, cod);
+    i+=ePredecesorAG(t->proxIrmao, cod);
+    return i;
 }
 
-void busca_figuraAG(TAG* t, int cod){
-    if (!t) return;
-    if (t->cod == cod){
-        printf("\n");
-        printf("\tFigura encontrada!\n");
-        if (strcmp(t->info->nom,"TRI") == 0){
-            printf("\tCODIGO: %d - NOME: %s - BASE: %d - ALTURA: %d - AREA: %.2f\n",t->cod,t->info->nom,t->info->param1,t->info->param2,t->area);
-        }
-        else if (strcmp(t->info->nom,"RET") == 0){
-            printf("\tCODIGO: %d - NOME: %s - BASE: %d - ALTURA: %d - AREA: %.2f\n",t->cod,t->info->nom,t->info->param1,t->info->param2,t->area);
-        }
-        else if (strcmp(t->info->nom,"TRA") == 0){
-            printf("\tCODIGO: %d - NOME: %s - BASE MENOR: %d - BASE MAYOR: %d - ALTURA: %d - AREA: %.2f\n",t->cod,t->info->nom,t->info->param1,t->info->param2,t->info->param3,t->area);
-        }
-        else if (strcmp(t->info->nom,"CIR") == 0){
-            printf("\tCODIGO: %d - NOME: %s - RADIO: %d - AREA: %.2f\n",t->cod,t->info->nom,t->info->param1,t->area);
-        }
-        else if (strcmp(t->info->nom,"QUA") == 0){
-            printf("\tCODIGO: %d - NOME: %s - LADO: %d - AREA: %.2f\n",t->cod,t->info->nom,t->info->param1,t->area);
-        } 
-    }
-    busca_figuraAG(t->primFilho,cod);
-    busca_figuraAG(t->proxIrmao,cod);
-}
-
-int pertenece(TAG* pNo, int cod){
-    int t = 0;
-    if (!pNo) return 0;
-    if (pNo->cod == cod) return 1;
-    t+=pertenece(pNo->primFilho,cod);
-    t+=pertenece(pNo->proxIrmao,cod);
-    return t;
-}
-
-TAG* insere(TAG* t, int cod, TFIG* info){
+TAG* insereAG(TAG* t, int cod, int pai, TFIG* info){
     if (!t){
-        t = criaNodo(cod,info);
+        t = criaNodoAG(cod,info);
         return t;
-    } 
+    }
 
     TAG* temp = t;
-    TAG** ppNo = (TAG**)malloc(sizeof(TAG*));
-    *ppNo=NULL;
-    busca(temp, info->pai, ppNo);
+    TAG** ppNo = (TAG**) malloc(sizeof(TAG*));
+    *ppNo = NULL;
+
+    localizaEnderecoAG(temp, pai, ppNo);
     TAG* pNo = *ppNo;
   
     if (!pNo) return t;
 
     if (!(pNo->primFilho)){
-        pNo->primFilho = criaNodo(cod,info);
+        pNo->primFilho = criaNodoAG(cod,info);
         return t;
     }
 
@@ -281,61 +213,58 @@ TAG* insere(TAG* t, int cod, TFIG* info){
     }
 
     if(!pProx){
-        pProx->proxIrmao = criaNodo(cod,info);
+        pProx->proxIrmao = criaNodoAG(cod,info);
         return t;
     }
-    pProx->proxIrmao = criaNodo(cod,info);
+    pProx->proxIrmao = criaNodoAG(cod,info);
     
     return t;
 }
 
-TAG* carrega(TAG* t, char* filename){ 
-    TFIG* v = read_txt(filename);
-    for (int i=0; i<tam; i++){
-        t = insere(t, v[i].cod, &v[i]);
-    }
-    return t;
-}
-
-void busca_antecesor(TAG* pNo, int cod, TAG** ppAnt){
-    if (!pNo) return;
-    if (pNo->proxIrmao && pNo->proxIrmao->cod == cod){
-        *ppAnt = pNo;
+void localizaEnderecoAntecesor(TAG* t, int cod, TAG** ppAnt){
+    if (!t) return;
+    if (t->proxIrmao && t->proxIrmao->info->cod == cod){
+        *ppAnt = t;
         return;
     } 
-    if (pNo->primFilho && pNo->primFilho->cod == cod){
-        *ppAnt = pNo;
+    if (t->primFilho && t->primFilho->info->cod == cod){
+        *ppAnt = t;
         return;
     }
-    busca_antecesor(pNo->primFilho,cod,ppAnt);
-    busca_antecesor(pNo->proxIrmao,cod,ppAnt);
+    localizaEnderecoAntecesor(t->primFilho, cod, ppAnt);
+    localizaEnderecoAntecesor(t->proxIrmao, cod, ppAnt);
 }
 
-TAG* retira(TAG* t, int ant_pai, int novo_pai){
+void copiarStruct(TAG* t1, TAG* t2){
+    t1->info->cod = t2->info->cod;
+    t1->info->pai = t2->info->pai;
+    strcpy(t1->info->nom, t2->info->nom);
+    t1->info->param1 = t2->info->param1;
+    t1->info->param2 = t2->info->param2;
+    t1->info->param3 = t2->info->param3;
+    t1->info->area = t2->info->area;
+}
+
+TAG* retiraAG(TAG* t, int ant_pai, int novo_pai){
     TAG* atemp = t;
     TAG** ppP1 = (TAG**)malloc(sizeof(TAG*));
     TAG** ppP2 = (TAG**)malloc(sizeof(TAG*));
     TAG** ppAP1 = (TAG**)malloc(sizeof(TAG*));
     TAG** ppAP2 = (TAG**)malloc(sizeof(TAG*));
 
-    busca(atemp, ant_pai, ppP1);
-    busca(atemp, novo_pai, ppP2);
-    busca_antecesor(atemp, ant_pai, ppAP1);
-    busca_antecesor(atemp, novo_pai, ppAP2);
+    localizaEnderecoAG(atemp, ant_pai, ppP1);
+    localizaEnderecoAG(atemp, novo_pai, ppP2);
+    localizaEnderecoAntecesor(atemp, ant_pai, ppAP1);
+    localizaEnderecoAntecesor(atemp, novo_pai, ppAP2);
 
     TAG* p1 = *ppP1;
     TAG* p2 = *ppP2;
     TAG* pp1 = *ppAP1;
     TAG* pp2 = *ppAP2;
 
-    if (pertenece(p1,p2->cod)==1){
-        int tempcod = p1->cod;
-        p1->cod = p2->cod;
-        p2->cod = tempcod;
+    if (ePredecesorAG(p1,p2->info->cod)==1){
 
-        TFIG* t = p1->info;
-        p1->info = p2->info;
-        p2->info = t;
+        copiarStruct(p1,p2);
 
         TAG* x = p1;
         p1 = p2;
@@ -372,258 +301,352 @@ TAG* retira(TAG* t, int ant_pai, int novo_pai){
     return t;
 }
 
-void imprimir_rec(TAG* pNo){
-    if (!pNo) return;
-    printf("CODIGO: %d\n", pNo->cod); 
-    imprimir_rec(pNo->primFilho);
-    imprimir_rec(pNo->proxIrmao);    
+TAG* carregaDesdeArquivo(TAG* t, char* filename){ 
+    TFIG* v = read_txt(filename);
+    for (int i=0; i<tam; i++){
+        t = insereAG(t, v[i].cod, v[i].pai, &v[i]);
+    }
+    return t;
 }
 
-void imprimir_irmaos(TAG* pNo, FILE* fp){
-    if (!pNo) return;
-
-    fprintf(fp,"%d ",pNo->cod);
-    if (pNo->proxIrmao)
-        fprintf(fp," -> ");
-    else
-        fprintf(fp, ";");
-
-    imprimir_irmaos(pNo->proxIrmao,fp);
-    fprintf(fp,"\n");
-    imprimir_irmaos(pNo->primFilho,fp);    
+void buscaFiguraAG(TAG* t, int cod){
+    if (!t) return;
+    if (t->info->cod == cod){
+        printf("\n");
+        printf("\tFigura encontrada!\n");
+        if (strcmp(t->info->nom,"TRI") == 0){
+            printf("\tCODIGO: %d - NOME: %s - BASE: %d - ALTURA: %d - AREA: %.2f\n",t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->area);
+        }
+        else if (strcmp(t->info->nom,"RET") == 0){
+            printf("\tCODIGO: %d - NOME: %s - BASE: %d - ALTURA: %d - AREA: %.2f\n",t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->area);
+        }
+        else if (strcmp(t->info->nom,"TRA") == 0){
+            printf("\tCODIGO: %d - NOME: %s - BASE MENOR: %d - BASE MAYOR: %d - ALTURA: %d - AREA: %.2f\n",t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->param3,t->info->area);
+        }
+        else if (strcmp(t->info->nom,"CIR") == 0){
+            printf("\tCODIGO: %d - NOME: %s - RADIO: %d - AREA: %.2f\n",t->info->cod,t->info->nom,t->info->param1,t->info->area);
+        }
+        else if (strcmp(t->info->nom,"QUA") == 0){
+            printf("\tCODIGO: %d - NOME: %s - LADO: %d - AREA: %.2f\n",t->info->cod,t->info->nom,t->info->param1,t->info->area);
+        } 
+    }
+    buscaFiguraAG(t->primFilho,cod);
+    buscaFiguraAG(t->proxIrmao,cod);
 }
 
-void imprimir_filhos(TAG* pNo, FILE* fp){
-    if (!pNo) return;
+void imprimirFilhosAGDOT(TAG* t, FILE* fp){
+    if (!t) return;
 
-    fprintf(fp,"%d ",pNo->cod);
-    if (pNo->primFilho)
-        fprintf(fp," -> ");
+    fprintf(fp, "%d ", t->info->cod);
+    if (t->primFilho)
+        fprintf(fp, " -> ");
     else
         fprintf(fp, ";");
     
-    imprimir_filhos(pNo->primFilho, fp);
-    fprintf(fp,"\n");
-    imprimir_filhos(pNo->proxIrmao, fp);
+    imprimirFilhosAGDOT(t->primFilho, fp);
+    fprintf(fp, "\n");
+    imprimirFilhosAGDOT(t->proxIrmao, fp);
 }
 
-void imprimir_rank(TAG* pNo, FILE* fp){
+void imprimirRankAGDOT(TAG* t, FILE* fp){
     static int cont = 1;
-    if (!pNo) return;
+    if (!t) return;
     
-    if (pNo->proxIrmao && cont ==1){
+    if (t->proxIrmao && cont ==1){
         fprintf(fp, "{rank=same; ");
-        fprintf(fp, "%d",pNo->cod );
+        fprintf(fp, "%d", t->info->cod );
         cont++;
-    } else if (pNo->proxIrmao && cont !=1){
-        fprintf(fp,"-> ");
-        fprintf(fp, "%d",pNo->cod );
+    } else if (t->proxIrmao && cont!=1){
+        fprintf(fp, "-> ");
+        fprintf(fp, "%d", t->info->cod);
     }
 
-    if (!(pNo->proxIrmao)&& cont !=1){
-        fprintf(fp," -> ");
-        fprintf(fp, "%d;}",pNo->cod );
+    if (!(t->proxIrmao) && cont!=1){
+        fprintf(fp, " -> ");
+        fprintf(fp, "%d;}", t->info->cod);
         cont = 1;
     }
 
-    imprimir_rank(pNo->proxIrmao,fp);
-    fprintf(fp,"\n");
-    imprimir_rank(pNo->primFilho,fp);    
+    imprimirRankAGDOT(t->proxIrmao, fp);
+    fprintf(fp, "\n");
+    imprimirRankAGDOT(t->primFilho, fp);    
 }
 
-void imprimir_info(TAG* pNo, FILE *fp){
-    if (!pNo) return;
+void imprimirInfoAGDOT(TAG* t, FILE *fp){
+    if (!t) return;
 
-    if (strcmp(pNo->info->nom,"TRI") == 0)
+    if (strcmp(t->info->nom,"TRI") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{{%s|b: %d, h: %d|Area: %.2f }|<f1> Irmao}|<f2> Filhos}\"];\n",
-                pNo->info->cod,pNo->info->cod,pNo->info->nom,pNo->info->param1,pNo->info->param2,pNo->area);
-    else if (strcmp(pNo->info->nom,"RET") == 0)
+                t->info->cod,t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->area);
+    else if (strcmp(t->info->nom,"RET") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{{%s|b: %d, h: %d|Area: %.2f }|<f1> Irmao}|<f2> Filhos}\"];\n",
-                pNo->info->cod,pNo->info->cod,pNo->info->nom,pNo->info->param1,pNo->info->param2,pNo->area);
-    else if (strcmp(pNo->info->nom,"TRA") == 0)
+                t->info->cod,t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->area);
+    else if (strcmp(t->info->nom,"TRA") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{{%s|b: %d, B: %d, h: %d|Area: %.2f }|<f1> Irmao}|<f2> Filhos}\"];\n",
-                pNo->info->cod,pNo->info->cod,pNo->info->nom,pNo->info->param1,pNo->info->param2,pNo->info->param3,pNo->area);
-    else if (strcmp(pNo->info->nom,"CIR") == 0)
+                t->info->cod,t->info->cod,t->info->nom,t->info->param1,t->info->param2,t->info->param3,t->info->area);
+    else if (strcmp(t->info->nom,"CIR") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{{%s|r: %d|Area: %.2f }|<f1> Irmao}|<f2> Filhos}\"];\n",
-                pNo->info->cod,pNo->info->cod,pNo->info->nom,pNo->info->param1,pNo->area);
-    else if (strcmp(pNo->info->nom,"QUA") == 0)
+                t->info->cod,t->info->cod,t->info->nom,t->info->param1,t->info->area);
+    else if (strcmp(t->info->nom,"QUA") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{{%s|l: %d|Area: %.2f }|<f1> Irmao}|<f2> Filhos}\"];\n",
-                pNo->info->cod,pNo->info->cod,pNo->info->nom,pNo->info->param1,pNo->area);
+                t->info->cod,t->info->cod,t->info->nom,t->info->param1,t->info->area);
     
-    imprimir_info(pNo->proxIrmao,fp);
-    imprimir_info(pNo->primFilho,fp);    
+    imprimirInfoAGDOT(t->proxIrmao, fp);
+    imprimirInfoAGDOT(t->primFilho, fp);    
 }
 
-void imprimir_arquivo(TAG* pNo, char* new_filename){
+void imprimirArquivoAGDOT(TAG* t, char* new_filename){
     FILE *fp = fopen(new_filename, "w");
     if (fp == NULL){
         puts("Arquivo nao abierto\n");
         return;
     }
-    fprintf(fp,"digraph structs {\n");
-    fprintf(fp,"nodesep=.5;\n");
-    fprintf(fp,"node [shape=record];\n");
-    imprimir_info(pNo,fp);
-    //imprimir_irmaos(pNo, fp);
+    fprintf(fp, "digraph structs {\n");
+    fprintf(fp, "nodesep=.5;\n");
+    fprintf(fp, "node [shape=record];\n");
+    imprimirInfoAGDOT(t,fp);
     fprintf(fp, "\n" );
-    imprimir_filhos(pNo, fp);
-    fprintf(fp,"\n");
-    imprimir_rank(pNo,fp);
+    imprimirFilhosAGDOT(t, fp);
+    fprintf(fp, "\n");
+    imprimirRankAGDOT(t, fp);
     fprintf(fp, "}" );
 
     fclose(fp);
 }
 
-///////////////////////////////////////////////////////////////////////// GENERADOR DE AVL
+TAG* destruirAG(TAG* t){
+    if (!t) return NULL;    
+    destruirAG(t->primFilho);
+    destruirAG(t->proxIrmao);
+    free(t);
+    return NULL;
+}
 
-typedef struct arvolAVL{
-    int cod;
+void alteraFiguraAG(TAG* t, int cod){
+    if (!t) return;
+    if (t->info->cod == cod){
+        int nparam1 = 0, nparam2 = 0, nparam3 = 0;
+        if (strcmp(t->info->nom,"TRI") == 0){
+            printf("\tCodigo pertencente a TRI\n");
+            printf("\t(>) Insira nova base e nova altura: \n");
+            printf("\t  (ex: 3 7 )\n");
+            printf("\t  (ex: 7 5 )\n");
+            printf("\t>>     ");
+            scanf(" %d %d",&nparam1,&nparam2);
+            t->info->param1 = nparam1;
+            t->info->param2 = nparam2;
+            t->info->area = (nparam1 * nparam2)/2;
+        }
+        else if (strcmp(t->info->nom,"RET") == 0){
+            printf("\tCodigo pertencente a RET\n");
+            printf("\t(>) Insira nova base e nova altura: \n");
+            printf("\t  (ex: 4 8  )\n");
+            printf("\t  (ex: 3 10 )\n");
+            printf("\t>>     ");
+            scanf(" %d %d",&nparam1,&nparam2);
+            t->info->param1 = nparam1;
+            t->info->param2 = nparam2;
+            t->info->area = nparam1 * nparam2;
+        }
+        else if (strcmp(t->info->nom,"TRA") == 0){
+            printf("\tCodigo pertencente a TRA\n");
+            printf("\t(>) Insira nova base menor, nova base mayor e nova altura: \n");
+            printf("\t  (ex: 5 9 15 )\n");
+            printf("\t  (ex: 3 5 8  )\n");
+            printf("\t>>     ");
+            scanf(" %d %d %d",&nparam1,&nparam2,&nparam3);
+            t->info->param1 = nparam1;
+            t->info->param2 = nparam2;
+            t->info->param3 = nparam3;
+            t->info->area = ((nparam1 + nparam2)/2)*nparam3;
+        }
+        else if (strcmp(t->info->nom,"CIR") == 0){
+            printf("\tCodigo pertencente a CIR\n");
+            printf("\t(>) Insira novo raio: \n");
+            printf("\t  (ex: 3 )\n");
+            printf("\t  (ex: 7 )\n");
+            printf("\t>>     ");
+            scanf(" %d",&nparam1);
+            t->info->param1 = nparam1;
+            t->info->area = 3.14 * nparam1 * nparam1;
+        }
+        else if (strcmp(t->info->nom,"QUA") == 0){
+            printf("\tCodigo pertencente a QUA\n");
+            printf("\t(>) Insira novo lado: \n");
+            printf("\t  (ex: 8  )\n");
+            printf("\t  (ex: 10 )\n");
+            printf("\t>>     ");
+            scanf(" %d",&nparam1);
+            t->info->param1 = nparam1;
+            t->info->area = nparam1 * nparam1;
+        }
+        printf("=======================================================================================\n");
+        printf("\n");
+        printf("\tDimensões alteradas!\n");
+        printf("\n=======================================================================================\n");
+        printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
+    }
+    alteraFiguraAG(t->primFilho,cod);
+    alteraFiguraAG(t->proxIrmao,cod);
+}
+
+void liberarVetorFigs(TFIG* t){
+    tam = 0;
+    free(t);
+}
+
+TFIG* criarNovoVetorFigs(){
+    v = criarVetFig();    
+}
+
+/*********************************************************************************************/
+/***************************************** ARVORE AVL ****************************************/
+/*********************************************************************************************/
+
+typedef struct arvoreAVL{
     TFIG* info;
-    double area;
-    struct arvolAVL *esq;
-    struct arvolAVL *dir;
+    struct arvoreAVL *esq;
+    struct arvoreAVL *dir;
     int alt;
 } TAVL;
 
-TAVL* criaNodoAVL(TAG* pNo){
+TAVL *inicializaAVL(){
+  return NULL;
+}
+
+TAVL* criaNodoAVL(const TAG* t){
     TAVL* novo = (TAVL*) malloc(sizeof(TAVL));
-    novo->cod = pNo->cod;
-    novo->info = pNo->info; 
-    novo->area = pNo->area;    
+    novo->info = t->info; 
     novo->esq = NULL;
     novo->dir = NULL;
     novo->alt = 0;
     return novo;
 }
 
-static int calc_alt(TAVL* n ){
-    if( n == NULL ) return -1;
-    return n->alt;
+static int calcAltAVL(TAVL* m){
+    if( m == NULL ) return -1;
+    return m->alt;
 }
 
-static int max( int l, int r){
+static int maxAVL( int l, int r){
     return l > r ? l: r;
 }
 
-static TAVL* rot_dir( TAVL* k2 ){
+static TAVL* rotDirAVL( TAVL* k2 ){
     TAVL* k1 = NULL;
     k1 = k2->esq;
     k2->esq = k1->dir;
     k1->dir = k2;
-    k2->alt = max( calc_alt( k2->esq ), calc_alt( k2->dir ) ) + 1;
-    k1->alt = max( calc_alt( k1->esq ), k2->alt ) + 1;
+    k2->alt = maxAVL( calcAltAVL( k2->esq ), calcAltAVL( k2->dir ) ) + 1;
+    k1->alt = maxAVL( calcAltAVL( k1->esq ), k2->alt ) + 1;
     return k1; /* nova raiz */
 }
 
-
-static TAVL* rot_esq( TAVL* k1 ){
+static TAVL* rotEsqAVL( TAVL* k1 ){
     TAVL* k2;
     k2 = k1->dir;
     k1->dir = k2->esq;
     k2->esq = k1;
-    k1->alt = max( calc_alt( k1->esq ), calc_alt( k1->dir ) ) + 1;
-    k2->alt = max( calc_alt( k2->dir ), k1->alt ) + 1;
+    k1->alt = maxAVL( calcAltAVL( k1->esq ), calcAltAVL( k1->dir ) ) + 1;
+    k2->alt = maxAVL( calcAltAVL( k2->dir ), k1->alt ) + 1;
     return k2;  /* nova raiz */
 }
 
-
-static TAVL* rot_esq_dir( TAVL* k3 ){
-    k3->esq = rot_esq( k3->esq );
-    return rot_dir( k3 );
+static TAVL* rotEsqDirAVL( TAVL* k3 ){
+    k3->esq = rotEsqAVL( k3->esq );
+    return rotDirAVL( k3 );
 }
 
-
-static TAVL* rot_dir_esq( TAVL* k1 ){
-    k1->dir = rot_dir( k1->dir );
-    return rot_esq( k1 );
+static TAVL* rotDirEsqAVL( TAVL* k1 ){
+    k1->dir = rotDirAVL( k1->dir );
+    return rotEsqAVL( k1 );
 }
 
-TAVL* insereAVL(TAG* pNo, TAVL* t2){    
+TAVL* insereAVL(TAG* t, TAVL* t2){    
     if (t2 == NULL){        
-        t2 = criaNodoAVL(pNo);     
+        t2 = criaNodoAVL(t);     
     }    
-    else if (pNo->cod < t2->cod){
-        t2->esq = insereAVL(pNo, t2->esq );
-        if( calc_alt( t2->esq ) - calc_alt( t2->dir ) == 2 )
-            if( pNo->cod < t2->esq->cod )
-                t2 = rot_dir( t2 );
+    else if (t->info->cod < t2->info->cod){
+        t2->esq = insereAVL(t, t2->esq );
+        if( calcAltAVL( t2->esq ) - calcAltAVL( t2->dir ) == 2 )
+            if( t->info->cod < t2->esq->info->cod )
+                t2 = rotDirAVL( t2 );
             else
-                t2 = rot_esq_dir( t2 );
-    } else if (pNo->cod > t2->cod){
-        t2->dir = insereAVL(pNo, t2->dir );
-        if( calc_alt( t2->dir ) - calc_alt( t2->esq ) == 2 )
-            if( pNo->cod > t2->dir->cod )
-                t2 = rot_esq( t2 );
+                t2 = rotEsqDirAVL( t2 );
+    } else if (t->info->cod > t2->info->cod){
+        t2->dir = insereAVL(t, t2->dir );
+        if( calcAltAVL( t2->dir ) - calcAltAVL( t2->esq ) == 2 )
+            if( t->info->cod > t2->dir->info->cod )
+                t2 = rotEsqAVL( t2 );
             else
-                t2 = rot_dir_esq( t2 );
+                t2 = rotDirEsqAVL( t2 );
     }
-    t2->alt = max( calc_alt( t2->esq ), calc_alt( t2->dir ) ) + 1;
+    t2->alt = maxAVL( calcAltAVL( t2->esq ), calcAltAVL( t2->dir ) ) + 1;
     return t2;
 }
 
-TAVL* transformaAVL(TAG* t, TAVL* t2){
+TAVL* transformaParaAVL(TAG* t, TAVL* t2){
     if (!t) return t2;
     t2 = insereAVL(t,t2);
-    t2 = transformaAVL(t->primFilho, t2);
-    t2 = transformaAVL(t->proxIrmao, t2);
-    return t2; //////////////////////////////// REVISAR //////////////////////////////////////////////////////////////////////////////
+    t2 = transformaParaAVL(t->primFilho, t2);
+    t2 = transformaParaAVL(t->proxIrmao, t2);
+    return t2; 
 }
 
-void imprimir_recAVL(TAVL* t2){
+void imprimirRecAVL(TAVL* t2){
     if (!t2) return;
-    printf("CODIGO: %d\n", t2->cod);    
-    imprimir_recAVL(t2->dir);    
-    imprimir_recAVL(t2->esq);
+    printf("CODIGO: %d\n", t2->info->cod);    
+    imprimirRecAVL(t2->dir);    
+    imprimirRecAVL(t2->esq);
 }
 
-void imprimir_infoAVL(TAVL* t2, FILE *fp){
+void imprimirInfoAVLDOT(TAVL* t2, FILE *fp){
     if (!t2) return;
+
 
     if (strcmp(t2->info->nom,"TRI") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->area);
     else if (strcmp(t2->info->nom,"RET") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->area);
     else if (strcmp(t2->info->nom,"TRA") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, B: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->param3,t2->area);
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->param3,t2->info->area);
     else if (strcmp(t2->info->nom,"CIR") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|r: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->area);
     else if (strcmp(t2->info->nom,"QUA") == 0)
         fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|l: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
+                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->area);
     
-    imprimir_infoAVL(t2->esq,fp);
-    imprimir_infoAVL(t2->dir,fp);    
+    imprimirInfoAVLDOT(t2->esq, fp);
+    imprimirInfoAVLDOT(t2->dir, fp);    
 }
 
-void imprimir_esqAVL(TAVL* t2, FILE *fp){
+void imprimirEsqAVLDOT(TAVL* t2, FILE *fp){
     if (!t2){
         return;
     } 
     if (t2->esq){
-        fprintf(fp,"%d:f1 -> %d;\n", t2->cod, t2->esq->cod);    
+        fprintf(fp, "%d:f1 -> %d;\n", t2->info->cod, t2->esq->info->cod);    
     }
-    imprimir_esqAVL(t2->esq,fp);
-    imprimir_esqAVL(t2->dir,fp);    
+    imprimirEsqAVLDOT(t2->esq, fp);
+    imprimirEsqAVLDOT(t2->dir, fp);    
 }
 
-
-void imprimir_dirAVL(TAVL* t2, FILE *fp){
+void imprimirDirAVLDOT(TAVL* t2, FILE *fp){
     if (!t2){
         return;
     } 
     if (t2->dir){
-        fprintf(fp,"%d:f2 -> %d;\n", t2->cod, t2->dir->cod);    
+        fprintf(fp,"%d:f2 -> %d;\n", t2->info->cod, t2->dir->info->cod);    
     }
-    imprimir_dirAVL(t2->dir,fp);    
-    imprimir_dirAVL(t2->esq,fp);
+    imprimirDirAVLDOT(t2->dir,fp);    
+    imprimirDirAVLDOT(t2->esq,fp);
 }
 
-
-void imprimir_arquivoAVL(TAVL* t2, char* new_filename){
+void imprimirArquivoAVLDOT(TAVL* t2, char* new_filename){
     FILE *fp = fopen(new_filename, "w");
     if (fp == NULL){
         puts("Arquivo nao abierto\n");
@@ -632,62 +655,70 @@ void imprimir_arquivoAVL(TAVL* t2, char* new_filename){
     fprintf(fp,"digraph structs {\n");
     fprintf(fp,"nodesep=.5;\n");
     fprintf(fp,"node [shape=record];\n");
-    imprimir_infoAVL(t2,fp);
+    imprimirInfoAVLDOT(t2,fp);
     fprintf(fp, "\n" );
-    imprimir_esqAVL(t2, fp);
+    imprimirEsqAVLDOT(t2, fp);
     fprintf(fp, "\n" );
-    imprimir_dirAVL(t2, fp);
-    //fprintf(fp, "\n" );
-    //imprimir_filhos(pNo, fp);
-    //fprintf(fp,"\n");
-    //imprimir_rank(pNo,fp);
+    imprimirDirAVLDOT(t2, fp);
     fprintf(fp, "}" );
 
     fclose(fp);
 }
 
-/////////////////////////////////////////////////////////////////////////
+void liberaAVL(TAVL* t){
+    if( t != NULL ){
+        liberaAVL( t->esq );
+        liberaAVL( t->dir );
+        free( t );
+    }
+}
+
+
+
+/*********************************************************************************************/
+/****************************************** ARVORE B *****************************************/
+/*********************************************************************************************/
 
 const int n = 2;
 
-typedef struct ArvB{
+typedef struct arvoreB{
   int nchaves, folha, *chave;
-  struct ArvB **filho;
+  struct arvoreB **filho;
 }TAB;
 
-TAB *criaB(int n){
+TAB *inicializaB(){
+  return NULL;
+}
+
+TAB *criaNodoB(int n){
   TAB* novo = (TAB*)malloc(sizeof(TAB));
   novo->nchaves = 0;
   novo->chave =(int*)malloc(sizeof(int*)*((n*2)-1));
-  novo->folha=1;
+  novo->folha = 1;
   novo->filho = (TAB**)malloc(sizeof(TAB*)*n*2);
   int i;
   for(i=0; i<(n*2); i++) novo->filho[i] = NULL;
   return novo;
 }
 
-TAB *buscaB(TAB* x, int ch){
+TAB *buscaB(TAB* t3, int ch){
   TAB *resp = NULL;
-  if(!x) return resp;
+  if(!t3) return resp;
   int i = 0;
-  while(i < x->nchaves && ch > x->chave[i]) i++;
-  if(i < x->nchaves && ch == x->chave[i]) return x;
-  if(x->folha) return resp;
-  return buscaB(x->filho[i], ch);
-}
-
-TAB *inicializaB(){
-  return NULL;
+  while(i < t3->nchaves && ch > t3->chave[i]) i++;
+  if(i < t3->nchaves && ch == t3->chave[i]) return t3;
+  if(t3->folha) return resp;
+  return buscaB(t3->filho[i], ch);
 }
 
 TAB *divisaoB(TAB *x, int i, TAB* y, int n){
-  TAB *z=criaB(n);
-  z->nchaves= n - 1;
+  TAB *z = criaNodoB(n);
+  z->nchaves = n - 1;
   z->folha = y->folha;
   int j;
-  for(j=0;j<n-1;j++) z->chave[j] = y->chave[j+n];
+  for(j=0; j<n-1; j++) z->chave[j] = y->chave[j+n];
   if(!y->folha){
-    for(j=0;j<n;j++){
+    for(j=0; j<n; j++){
       z->filho[j] = y->filho[j+n];
       y->filho[j+n] = NULL;
     }
@@ -700,7 +731,6 @@ TAB *divisaoB(TAB *x, int i, TAB* y, int n){
   x->nchaves++;
   return x;
 }
-
 
 TAB *insere_Nao_CompletoB(TAB *x, int k, int n){
   int i = x->nchaves-1;
@@ -723,134 +753,83 @@ TAB *insere_Nao_CompletoB(TAB *x, int k, int n){
   return x;
 }
 
-
-TAB *insereB(TAB *T, TAG* tag, int n){
-  int cod = tag->cod;
-  if(buscaB(T,cod)) return T;
-  if(!T){
-    T=criaB(n);
-    T->chave[0] = cod;
-    T->nchaves=1;
-    return T;
+TAB *insereB(TAB* t3, TAG* t, int n){
+  int cod = t->info->cod;
+  if(buscaB(t3, cod)) return t3;
+  if(!t3){
+    t3 = criaNodoB(n);
+    t3->chave[0] = cod;
+    t3->nchaves = 1;
+    return t3;
   }
-  if(T->nchaves == (2*n)-1){
-    TAB *S = criaB(n);
+  if(t3->nchaves == (2*n)-1){
+    TAB *S = criaNodoB(n);
     S->nchaves=0;
     S->folha = 0;
-    S->filho[0] = T;
-    S = divisaoB(S,1,T,n);
+    S->filho[0] = t3;
+    S = divisaoB(S,1,t3,n);
     S = insere_Nao_CompletoB(S,cod,n);
     return S;
   }
-  T = insere_Nao_CompletoB(T,cod,n);
-  return T;
+  t3 = insere_Nao_CompletoB(t3,cod,n);
+  return t3;
 }
 
-TAB* transformaB(TAG* tag, TAB* t3, int n){
-    if (!tag) return t3;
-    t3 = insereB(t3,tag,n);
-    t3 = transformaB(tag->primFilho, t3, n);
-    t3 = transformaB(tag->proxIrmao, t3, n);    
+TAB* transformaB(TAG* t, TAB* t3, int n){
+    if (!t) return t3;
+    t3 = insereB(t3,t,n);
+    t3 = transformaB(t->primFilho, t3, n);
+    t3 = transformaB(t->proxIrmao, t3, n);    
 }
 
-void imprimeB(TAB *a, int andar){
-  if(a){
+void imprimeB(TAB *t3, int andar){
+  if(t3){
     int i,j;
-    for(i=0; i<=a->nchaves-1; i++){
-      imprimeB(a->filho[i],andar+1);
+    for(i=0; i<=t3->nchaves-1; i++){
+      imprimeB(t3->filho[i],andar+1);
       for(j=0; j<=andar; j++) printf("   ");
-      printf("%d\n", a->chave[i]);
+      printf("%d\n", t3->chave[i]);
     }
-    imprimeB(a->filho[i],andar+1);
+    imprimeB(t3->filho[i],andar+1);
   }
 }
 
-/*void imprimir_infoB(TAB* t3, FILE *fp){
-    if (!t3) return;
-
-    /*if (strcmp(t2->info->nom,"TRI") == 0)
-        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
-    else if (strcmp(t2->info->nom,"RET") == 0)
-        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->area);
-    else if (strcmp(t2->info->nom,"TRA") == 0)
-        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|b: %d, B: %d, h: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->info->param2,t2->info->param3,t2->area);
-    else if (strcmp(t2->info->nom,"CIR") == 0)
-        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|r: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
-    else if (strcmp(t2->info->nom,"QUA") == 0)
-        fprintf(fp, "%d [shape=record,label=\"{<f0> COD:%d |{%s|l: %d|Area: %.2f }|{<f1> Esq|<f2> Dir}}\"];\n",
-                t2->info->cod,t2->info->cod,t2->info->nom,t2->info->param1,t2->area);
-    
-
-    imprimir_infoB(t->esq,fp);
-    imprimir_infoB(t2->dir,fp);    
-}
-
-void imprimir_esqAVL(TAVL* t2, FILE *fp){
-    if (!t2){
-        return;
-    } 
-    if (t2->esq){
-        fprintf(fp,"%d:f1 -> %d;\n", t2->cod, t2->esq->cod);    
-    }
-    imprimir_esqAVL(t2->esq,fp);
-    imprimir_esqAVL(t2->dir,fp);    
-}
-
-
-void imprimir_dirAVL(TAVL* t2, FILE *fp){
-    if (!t2){
-        return;
-    } 
-    if (t2->dir){
-        fprintf(fp,"%d:f2 -> %d;\n", t2->cod, t2->dir->cod);    
-    }
-    imprimir_dirAVL(t2->dir,fp);    
-    imprimir_dirAVL(t2->esq,fp);
-}*/
-
-void imprime2(TAB *a, int andar, FILE *fp){
-  static int id_nod = 0;
+void imprimeInfoB(TAB *a, int andar, FILE *fp, int mynum){
   if(a){
     int i,j;
-    fprintf(fp, "%d [shape=record,label=\"{{",id_nod);
-    for (i=0; i<(n*2)-1; i++){
-        fprintf(fp,"<f%d>",i);
+    int pchaves=(n*2);
+    fprintf(fp, "%d%d [shape=record,label=\"{{",andar,mynum*pchaves);
+    for (i=0; i<pchaves-1; i++){
+        fprintf(fp,"<f%d>",i+(mynum*pchaves));
         if (i<=a->nchaves-1){
             fprintf(fp,"| %d |", a->chave[i]);
         } else {
             fprintf(fp,"| - |");
         }
     }
-    id_nod++;
-    fprintf(fp,"<f%d>}}\"];\n",i);
-
-    for(i=0; i<=a->nchaves-1; i++){
-      imprime2(a->filho[i],andar+1,fp);
-            
+    fprintf(fp,"<f%d>}}\"];\n",i+(mynum*pchaves));
+    j=0;
+    for(i=0; i<(n*2); i++){
+        imprimeInfoB(a->filho[i], andar+1, fp, i+(mynum*pchaves) );
     }
-    imprime2(a->filho[i],andar+1,fp);
   }
 }
 
-void imprime3(TAB *a, int andar, FILE *fp){
-  static int id_nod2 = 0;
+void imprimeFlechaB(TAB *a, int andar, FILE *fp, int mynum){
   if(a){
     int i,j;
-    for(i=0; i<=a->nchaves-1; i++){
-        fprintf(fp, "%d:<f%d> -> %d:<f0>;\n",id_nod2,i,id_nod2+1);
+    int pchaves=(n*2);
 
-      imprime3(a->filho[i],andar+1,fp);            
-    id_nod2++;
+    for (i=0; i<pchaves; i++){
+        if(a->filho[i]){
+            fprintf(fp,"%d%d:<f%d> -> %d%d:<f%d>;\n", andar, mynum*pchaves, i+(mynum*pchaves), andar+1, (i+(mynum*pchaves))*pchaves , (i+(mynum*pchaves))*pchaves );  
+        }
     }
-    imprime3(a->filho[i],andar+1,fp);
+    for(i=0; i<pchaves; i++){
+        imprimeFlechaB(a->filho[i],andar+1,fp,i+(mynum*pchaves));  
+    }
   }
 }
-
-
 
 void imprimir_arquivoB(TAB* t3, char* new_filename){
     FILE *fp = fopen(new_filename, "w");
@@ -861,24 +840,30 @@ void imprimir_arquivoB(TAB* t3, char* new_filename){
     fprintf(fp,"digraph structs {\n");
     fprintf(fp,"nodesep=.5;\n");
     fprintf(fp,"node [shape=record];\n");
-    imprime2(t3,0,fp);
+    imprimeInfoB(t3,0,fp,0);
     fprintf(fp, "\n");
-    imprime3(t3,0,fp);
-    /*imprimir_infoAVL(t2,fp);
-    fprintf(fp, "\n" );
-    imprimir_esqAVL(t2, fp);
-    fprintf(fp, "\n" );
-    imprimir_dirAVL(t2, fp);*/
-    //fprintf(fp, "\n" );
-    //imprimir_filhos(pNo, fp);
-    //fprintf(fp,"\n");
-    //imprimir_rank(pNo,fp);
+    imprimeFlechaB(t3,0,fp,0);
     fprintf(fp, "}" );
 
     fclose(fp);
 }
 
-/////////////////////////////////////////////////////////////////////////
+TAB *liberaB(TAB *a){
+  if(a){
+    if(!a->folha){
+      int i;
+      for(i = 0; i <= a->nchaves; i++) liberaB(a->filho[i]);
+    }
+    free(a->chave);
+    free(a->filho);
+    free(a);
+    return NULL;
+  }
+}
+
+/*********************************************************************************************/
+/****************************************** MENU AG ******************************************/
+/*********************************************************************************************/
 
 void buscar_figura_geometrica(TAG* t){
     printf("\033[2J");
@@ -896,7 +881,7 @@ void buscar_figura_geometrica(TAG* t){
 
     int cod = atoi(codigo);
     bs_flag = 0;
-    busca_simnao(t,cod);    
+    buscaSimNaoAG(t,cod);    
     if (bs_flag==0){
         printf("\n\tFigura Nao encontrada\n");
         printf("\n=======================================================================================\n");
@@ -905,7 +890,7 @@ void buscar_figura_geometrica(TAG* t){
         return;
     } 
 
-    busca_figuraAG(t,cod);
+    buscaFiguraAG(t,cod);
 
     printf("\n=======================================================================================\n");
     printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
@@ -918,17 +903,17 @@ void imprimir_arvore(TAG* t){
     printf("(b) Imprimir árvore\n");
     printf("=======================================================================================\n");
     printf("\n");
-    imprimir_arquivo(t,"arvolG.dot");
+    imprimirArquivoAGDOT(t,"arvoreG.dot");
     printf("\tÁrvore impressa!\n");
-    system("dot -Tps arvolG.dot -o arvolG.pdf");
-    system("xdg-open arvolG.pdf");
+    system("dot -Tps arvoreG.dot -o arvoreG.pdf");
+    system("xdg-open arvoreG.pdf");
 
     printf("\n=======================================================================================\n");
     printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
     getchar();
 }
 
-void inserir_nova_figura(TAG* t){
+TAG* inserir_nova_figura(TAG* t){
     char my_arguments[3][6];
 
     printf("\033[2J");
@@ -1029,7 +1014,7 @@ void inserir_nova_figura(TAG* t){
     if(num_arg==-1){
         printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
         getchar();
-        return;
+        return t;
     }    
     
     int my_arguments_int[3];
@@ -1038,8 +1023,7 @@ void inserir_nova_figura(TAG* t){
         my_arguments_int[i]=atoi(my_arguments[i]);
     }
 
-    bs_flag = 0;
-    busca_simnao(t,1);
+    bs_flag = 1;
     int n_cod;
     while(bs_flag == 1){
         printf("\t(>) Insira um codigo para a nova figura: \n");
@@ -1048,12 +1032,11 @@ void inserir_nova_figura(TAG* t){
         printf("\t>>     ");
         scanf(" %d",&n_cod);
         bs_flag = 0;
-        busca_simnao(t,n_cod);
+        buscaSimNaoAG(t,n_cod);
         if(bs_flag == 1) printf("\tCodigo de figura em uso\n");
     }
 
     bs_flag = 0;
-    busca_simnao(t,-1);
     int n_pai;
     while(bs_flag == 0){
         printf("\t(>) Insira o codigo do pai: \n");
@@ -1062,12 +1045,14 @@ void inserir_nova_figura(TAG* t){
         printf("\t>>     ");
         scanf(" %d",&n_pai);
         bs_flag = 0;
-        busca_simnao(t,n_pai);
+        buscaSimNaoAG(t,n_pai);
         if(bs_flag == 0) printf("\tCodigo do pai nao encontrado\n");
     }
 
     tam++;
-    v = (TFIG*) realloc(v,sizeof(TFIG)*(tam+1));
+
+    v = resizeVetFig(v,tam+1);
+    t->info->cod = 1;
     v[tam].cod = n_cod;
     v[tam].pai = n_pai;
 
@@ -1102,7 +1087,7 @@ void inserir_nova_figura(TAG* t){
         v[tam].param3 = 0;
     }
 
-    t = insere(t,n_cod,&v[tam]);
+    t = insereAG(t,n_cod,n_pai,&v[tam]);
 
     printf("=======================================================================================\n");
     printf("\n");
@@ -1112,9 +1097,10 @@ void inserir_nova_figura(TAG* t){
 
     printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
     getchar();
+    return t;
 }
 
-void retirar_figura(TAG* t){  
+TAG* retirar_figura(TAG* t){  
     printf("\033[2J");
     printf("\033[1;1H"); 
     printf("(d) Retirar figuras\n");
@@ -1141,39 +1127,54 @@ void retirar_figura(TAG* t){
     int cod_npai = atoi(codigo_npai);
 
     bs_flag = 0;
-    busca_simnao(t,cod_apai);
+    buscaSimNaoAG(t,cod_apai);
     if (bs_flag == 0){
         printf("\n");
         printf("\tCodigo de figura para retirar nao encontrado\n");        
         printf("\n=======================================================================================\n");
         printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
         getchar();
-        return;        
+        return t;        
     } 
 
     bs_flag = 0;
-    busca_simnao(t,cod_npai);
+    buscaSimNaoAG(t,cod_npai);
     if (bs_flag == 0){
         printf("\n");
         printf("\tCodigo de figura novo pai nao encontrado\n");
         printf("\n=======================================================================================\n");
         printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
         getchar();
-        return;   
+        return t;   
     }
 
     bs_flag = 0;
-    t = retira(t, cod_apai, cod_npai);
+    t = retiraAG(t, cod_apai, cod_npai);
 
     printf("\n");
     printf("\tFigura retirada!\n");
     printf("\n=======================================================================================\n");
     printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
     getchar();
+    return t;
 }
 
-void destruir_arvore(){
-    return;
+TAG* destruir_arvoreAG(TAG* t){
+    printf("\033[2J");
+    printf("\033[1;1H"); 
+    printf("(e) Destruir árvore\n");
+    printf("=======================================================================================\n");
+
+    t = destruirAG(t);
+
+    printf("=======================================================================================\n");
+    printf("\n");
+    printf("\tÁrvore destruido!\n");
+    printf("\n");
+    printf("=======================================================================================\n");
+    getchar();
+
+    return t;
 }
 
 void alterar_dimensoes_figura(TAG* t){
@@ -1191,7 +1192,7 @@ void alterar_dimensoes_figura(TAG* t){
 
     int cod = atoi(codigo);
     bs_flag = 0;
-    busca_simnao(t,cod);
+    buscaSimNaoAG(t,cod);
     if (bs_flag==0){
         printf("=======================================================================================\n");
         printf("\n");
@@ -1201,60 +1202,159 @@ void alterar_dimensoes_figura(TAG* t){
         getchar();
         return;
     }
-    altera_figuraAG(t,cod);
+    alteraFiguraAG(t,cod);
     getchar();
 }
 
-void transformar_avl(TAG* t, TAVL* t2){
+
+void inserir_figuraAVL(TAG* t){
+    /*printf("\033[2J");
+    printf("\033[1;1H"); 
+    printf("=======================================================================================\n");
+    printf("\n");
+    printf("\tFigura inserida!\n");
+    printf("\n");
+    printf("=======================================================================================\n");
+
+    printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
+    getchar();*/
+    inserir_nova_figura(t);
+}
+
+void retirar_figuraAVL(TAG* t){
+    printf("\033[2J");
+    printf("\033[1;1H"); 
+    printf("=======================================================================================\n");
+    printf("\n");
+    printf("\tFigura retirada!\n");
+    printf("\n");
+    printf("=======================================================================================\n");
+
+    printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
+    getchar();
+}
+
+
+void imprimir_AVL(TAG* t){
+    printf("\033[2J");
+    printf("\033[1;1H"); 
+    printf("=======================================================================================\n");
+    printf("\n");
+    printf("\tÁrvore impressa!\n");
+    printf("\n");
+    printf("=======================================================================================\n");
+
+    printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
+    getchar();
+}
+
+TAG* inserir_desde_zeroAG(TAG* t){
+    v = criarNovoVetorFigs();
+    v[0].cod = 1;
+    v[0].pai = 0;
+    strcpy(v[0].nom,"CIR");
+    v[0].param1 = 5;
+    v[0].param2 = 0;
+    v[0].param3 = 0;
+    t = insereAG(t,0,0,&v[0]);
+
+    return t;
+}
+
+TAVL* transformar_avl(TAG* t, TAVL* t2){
     printf("\033[2J");
     printf("\033[1;1H"); 
     printf("(g) Transformar a árvore genérica numa árvore AVL\n");
     printf("=======================================================================================\n");
     printf("\n");
-    t2 = transformaAVL(t,t2);
-    imprimir_arquivoAVL(t2,"arvolAVL.dot");
+    TAG* temp = t;
+    t2 = transformaParaAVL(temp,t2);
+    imprimirArquivoAVLDOT(t2,"arvoreAVL.dot");
     printf("\tÁrvore transformado!\n");
-    system("dot -Tps arvolAVL.dot -o arvolAVL.pdf");
-    system("xdg-open arvolAVL.pdf");
+    printf("\n=======================================================================================\n");
+    system("dot -Tps arvoreAVL.dot -o arvoreAVL.pdf");
+    system("xdg-open arvoreAVL.pdf");
+
+    /*char key[2] ;
+    int cont = 0;
+    while(1){
+        if (cont != 0){
+            printf("\033[2J");
+            printf("\033[1;1H"); 
+        }
+        printf("ÁRVORE AVL: \n");
+        printf("\t(a) Inserir novas figuras\n");
+        printf("\t(b) Retirar figuras\n");
+        printf("\t(c) Imprimir árvore\n");
+        printf("\t(d) Voltar ao Menu principal\n");
+        printf("=======================================================================================\n");
+        printf("Insira sua opção: \n");
+        printf("\t >>  ");
+        scanf(" %s",key);
+        printf("=======================================================================================\n");
+
+        switch(key[0]) {
+            case 'a' :
+                inserir_figuraAVL(t);
+                cont++;
+                //scanf("%s",&elem);
+                getchar();
+                break;
+            case 'b' :
+                retirar_figuraAVL(t);
+                cont++;
+                //scanf("%s",&elem);
+                getchar();
+                break;
+            case 'c' :
+                imprimir_AVL(t);
+                cont++;
+                //scanf("%s",&elem);
+                getchar();
+                break;
+            case 'd' :                
+                //scanf("%s",&elem);
+                getchar();
+                return;
+                break;            
+        }
+    }*/
+
     printf("\n=======================================================================================\n");
     printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
     getchar();
     
-    return ;
+    return t2;
 }
 
-void tranformar_b(){
+void tranformar_b(TAG* t, TAB* t3){
+    printf("\033[2J");
+    printf("\033[1;1H"); 
+    printf("(h) Transformar a árvore genérica numa árvore B\n");
+    printf("=======================================================================================\n");
+    printf("\n");
+    t3 = transformaB(t,t3,n);
+    imprimir_arquivoB(t3,"arvoreBB.dot");
+    system("dot -Tps arvoreBB.dot -o arvoreBB.pdf");
+    system("xdg-open arvoreBB.pdf");
+    printf("\tÁrvore transformado!\n");
+    printf("\n=======================================================================================\n");
+    printf("\n\n\n\n\n\nPresione Enter para voltar ao Menu principal... ");
+    getchar();
 
     return ;
 }
-
-
-/*int main(void){
-    TAG* t = NULL;
-    t = carrega(t,"data.txt");
-    //imprimir_rec(t);
-    //t = retira(t,5,3);
-    t = retira(t,3,10);
-    //t = retira(t,10,6);
-    //imprimir_rec(t);
-    imprimir_arquivo(t,"arvolGen.dot");
-    TAVL* t2 = NULL;
-    t2 = transformaAVL(t,t2);
-    //imprimir_recAVL(t2);
-    imprimir_arquivoAVL(t2,"arvolAVL.dot");
-    return 0;
-}*/
 
 int main(){
-    TAG* t = NULL;
-    TAVL* t2 = NULL;
-    TAB* t3 = NULL;    
-    t = carrega(t,"data.txt");
-    t3 = transformaB(t,t3,n);
+    TAG* t = inicializaAG();
+    TAVL* t2 = inicializaAVL();
+    TAB* t3 = inicializaB();    
+    t = carregaDesdeArquivo(t,"data.txt");
+    //t3 = transformaB(t,t3,n);
     //imprimeB(t3,0);
-    imprimir_arquivoB(t3,"arvolB.dot");
+    //imprimir_arquivoB(t3,"arvolB.dot");
     
-    /*int i;
+    int i;
     char key[2] ;
     while(1){
         printf("\033[2J");
@@ -1262,7 +1362,7 @@ int main(){
         //printf("Elija su opcion: \e[31mRed\n");
         printf("\t\t\t\t\e[33;1m@Roger Ripas && @Luigy Machaca \e[00m \n");
         printf("=======================================================================================\n");
-        printf("ARVOL GENERICO: \n");
+        printf("ÁRVORE GENERICO: \n");
         printf("\t(a) Buscar figura geométrica\n");
         printf("\t(b) Imprimir árvore \n");
         printf("\t(c) Inserir novas figuras\n");
@@ -1271,14 +1371,13 @@ int main(){
         printf("\t(f) Alterar dimensões das figuras\n");
         printf("\t(g) Transformar a árvore genérica numa árvore AVL\n");
         printf("\t(h) Transformar a árvore genérica numa árvore B\n");
+        //printf("\t(i) Cria arvore novo\n");        
         printf("=======================================================================================\n");
         printf("Insira sua opção: \n");
         printf("\t >>  ");
         scanf(" %s",key);
         printf("=======================================================================================\n");
 
-  
-        //char elem[20];
         switch(key[0]) {
             case 'a' :
                 buscar_figura_geometrica(t);
@@ -1292,17 +1391,22 @@ int main(){
                 getchar();
                 break;
             case 'c' :
-                inserir_nova_figura(t);
+                if (!t){
+                    printf("Arvore precisa pelo menos de um nodo pai\n");
+                    getchar();
+                } 
+                else t = inserir_nova_figura(t);
                 //scanf("%s",&elem);
                 getchar();
                 break;
             case 'd' :                
-                retirar_figura(t);
+                t = retirar_figura(t);
                 //scanf("%s",&elem);
                 getchar();
                 break;
             case 'e' :
-                destruir_arvore();
+                t = destruir_arvoreAG(t);
+                liberarVetorFigs(v);
                 //scanf("%s",&elem);
                 getchar();
                 break;
@@ -1312,12 +1416,29 @@ int main(){
                 getchar();
                 break;
             case 'g' :
-                transformar_avl(t,t2);
-                //scanf("%s",&elem);
+                if (t2){
+                    liberaAVL(t2);
+                }
+                t2 = NULL;
+                t2 = transformar_avl(t,t2);
                 getchar();
                 break;
             case 'h' :
-                tranformar_b();
+                if (t3){
+                    liberaB(t3);
+                }              
+                t3 = NULL;  
+                tranformar_b(t,t3);
+                //scanf("%s",&elem);
+                getchar();
+                break;
+
+            case 'i':
+                if (!t){
+                    printf("Destruir arvore primeiro\n");
+                    getchar();
+                } 
+                else t = inserir_desde_zeroAG(t);
                 //scanf("%s",&elem);
                 getchar();
                 break;
@@ -1330,6 +1451,9 @@ int main(){
                 //system("pause");
                 break;
         }
-    }*/
+    }
+
+    t = destruir_arvoreAG(t);
+    liberarVetorFigs(v);
     return 0;
 }
