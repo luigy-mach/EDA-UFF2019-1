@@ -1,0 +1,63 @@
+digraph structs {
+nodesep=.5;
+node [shape=record];
+1 [shape=record,label="{<f0> COD:1 |{{TRI|b: 3, h: 2|Area: 2.50 }|<f1> Irmao}|<f2> Filhos}"];
+2 [shape=record,label="{<f0> COD:2 |{{RET|b: 3, h: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+3 [shape=record,label="{<f0> COD:3 |{{TRA|b: 2, B: 3, h: 4|Area: 10.00 }|<f1> Irmao}|<f2> Filhos}"];
+10 [shape=record,label="{<f0> COD:10 |{{TRI|b: 1, h: 2|Area: 1.50 }|<f1> Irmao}|<f2> Filhos}"];
+14 [shape=record,label="{<f0> COD:14 |{{CIR|r: 4|Area: 50.26 }|<f1> Irmao}|<f2> Filhos}"];
+17 [shape=record,label="{<f0> COD:17 |{{TRI|b: 8, h: 9|Area: 8.50 }|<f1> Irmao}|<f2> Filhos}"];
+11 [shape=record,label="{<f0> COD:11 |{{QUA|l: 6|Area: 36.00 }|<f1> Irmao}|<f2> Filhos}"];
+19 [shape=record,label="{<f0> COD:19 |{{RET|b: 7, h: 3|Area: 21.00 }|<f1> Irmao}|<f2> Filhos}"];
+6 [shape=record,label="{<f0> COD:6 |{{RET|b: 2, h: 2|Area: 4.00 }|<f1> Irmao}|<f2> Filhos}"];
+5 [shape=record,label="{<f0> COD:5 |{{QUA|l: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+9 [shape=record,label="{<f0> COD:9 |{{QUA|l: 1|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+16 [shape=record,label="{<f0> COD:16 |{{QUA|l: 9|Area: 81.00 }|<f1> Irmao}|<f2> Filhos}"];
+7 [shape=record,label="{<f0> COD:7 |{{TRA|b: 1, B: 2, h: 3|Area: 4.50 }|<f1> Irmao}|<f2> Filhos}"];
+8 [shape=record,label="{<f0> COD:8 |{{CIR|r: 2|Area: 12.57 }|<f1> Irmao}|<f2> Filhos}"];
+12 [shape=record,label="{<f0> COD:12 |{{TRI|b: 5, h: 9|Area: 7.00 }|<f1> Irmao}|<f2> Filhos}"];
+15 [shape=record,label="{<f0> COD:15 |{{TRA|b: 3, B: 6, h: 7|Area: 31.50 }|<f1> Irmao}|<f2> Filhos}"];
+13 [shape=record,label="{<f0> COD:13 |{{RET|b: 8, h: 4|Area: 32.00 }|<f1> Irmao}|<f2> Filhos}"];
+20 [shape=record,label="{<f0> COD:20 |{{QUA|l: 10|Area: 100.00 }|<f1> Irmao}|<f2> Filhos}"];
+18 [shape=record,label="{<f0> COD:18 |{{CIR|r: 7|Area: 153.93 }|<f1> Irmao}|<f2> Filhos}"];
+
+1  -> 2  -> 6  -> 18 ;
+
+5  -> 7  -> 13  -> 20 ;
+
+
+8  -> 15 ;
+
+12 ;
+
+9  -> 16 ;
+
+
+3  -> 11 ;
+19 ;
+
+10  -> 17 ;
+
+14 ;
+
+
+
+{rank=same; 2-> 3-> 10 -> 14;}
+
+
+
+{rank=same; 11 -> 19;}
+
+
+{rank=same; 6-> 5 -> 9;}
+
+
+{rank=same; 7-> 8 -> 12;}
+
+
+
+
+
+
+
+}

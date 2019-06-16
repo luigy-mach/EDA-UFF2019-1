@@ -7,9 +7,10 @@
 #define PI 3.1415
 #define BUFFER_LINE 50
 #define BUFFER_CHAR 10
-#define NUM_DIV_INPUT 5
-#define TAM_VEC_ 30
+#define NUM_DIV_INPUT 6
+//#define TAM_VEC_ 30
 
+typedef int (*myTypeCmpFunc)(void*, void*);
 
 
 /*********************************************************************************************/
@@ -23,7 +24,6 @@ typedef struct figure{
   double area;
 } TFIG;
 
-typedef int (*myTypeCmpFunc)(void*, void*);
 
 TFIG* inicializa_TFIG(){
     return NULL;
@@ -48,25 +48,6 @@ int compare_dois_TFIG(TFIG* fig1, TFIG* fig2){
     }
 }
 
-int oquetipoe_TFIG(char* nome){
-    if(strcmp(nome,"QUA")==0){//QUA
-        return 1;
-    }
-    if(strcmp(nome,"CIR")==0){//CIR
-        return 2;
-    }
-    if(strcmp(nome,"RET")==0){//RET
-        return 3;
-    }
-    if(strcmp(nome,"TRI")==0){//TRI
-        return 4;
-    }
-    if(strcmp(nome,"TRA")==0){//TRA
-        return 5;
-    }
-    return -1; //error
-}
-
 int quan_parameters_TFIG(char* nome){
     if(strcmp(nome,"QUA")==0){//QUA
         return 1;
@@ -88,7 +69,7 @@ int quan_parameters_TFIG(char* nome){
 
 
 int* cria_parameters_TFIG(char* nome){
-    if(strlen(nome)<2){
+    if(strlen(nome)!=3){
         return NULL; //error nome
     }
     int tam = quan_parameters_TFIG(nome);
@@ -103,29 +84,10 @@ int* cria_parameters_TFIG(char* nome){
 }
 
 
-int init_parameters_TFIG(TFIG* fig){
-    if(!fig){
-        return -1; //error
-    }
-    if(!fig->nome){
-        return -1; //error
-    }
-    int tam = quan_parameters_TFIG(fig->nome);
-    if(tam==-1){
-        return -1; //error
-    }
-    fig->parameters=(int*)malloc(sizeof(int)*tam);
-    for(int i=0;i<tam;i++){
-        fig->parameters[i]=-1;
-    }    
-    return -1; //error
-}
-
-
 double calcula_area_TFIG(char* nome,int* parameters){
-    int qtam = quan_parameters_TFIG(nome);
-    if((qtam!=-1))
+    if(!nome || !parameters){
         return -1.0;
+    }
     if(strcmp(nome,"QUA")==0){//QUA
         return parameters[0]*parameters[0];
     }
@@ -162,7 +124,7 @@ double ler_area_TFIG(TFIG* fig){
 }
 
 TFIG* cria_TFIG(int cod, char* nome, int* parameters ){
-    if(!parameters) 
+    if(!parameters || !nome) 
         return NULL; //error cria_TFIG;
     TFIG* novo=(TFIG*)malloc(sizeof(TFIG));
     novo->cod=cod;
@@ -185,7 +147,7 @@ TFIG* cria_TFIG_vacio(int cod){
 
 
 /*********************************************************************************************/
-/************************************** Interface VOID **************************************/
+/************************************** Interface INFO (void*) ********************************/
 /*********************************************************************************************/
 
 void* cria_INFO(int cod, char* nome, int* parameters ){
@@ -200,37 +162,38 @@ void* cria_INFO_vacio(int cod){
     return novo; 
 }
 
-int ler_cod_INFO(void* fig){
-    TFIG* temp=(struct figure*)(fig);
+int ler_cod_INFO(void* info){
+    TFIG* temp=(struct figure*)(info);
     return ler_cod_TFIG(temp);
 }
 
-char* ler_nome_INFO(void* fig){
-    TFIG* temp=(struct figure*)(fig);
+char* ler_nome_INFO(void* info){
+    TFIG* temp=(struct figure*)(info);
     return ler_nome_TFIG(temp);
 }
 
-int* ler_parameters_INFO(void* fig){
-    TFIG* temp=(struct figure*)(fig);
+int* ler_parameters_INFO(void* info){
+    TFIG* temp=(struct figure*)(info);
     return ler_parameters_TFIG(temp);
 }
 
-double ler_area_INFO(void* fig){
-    TFIG* temp=(struct figure*)(fig);
-    return calcula_area_TFIG(temp->nome,temp->parameters);
+double ler_area_INFO(void* info){
+    TFIG* temp=(struct figure*)(info);
+    return ler_area_TFIG(info);
 }
 
 int compare_dois_INFO(void* info1, void* info2){
-    if(!info1 || !info2)
+    if(!info1 || !info2){
         return -1;
+    }
     TFIG* myfig1=(struct figure*)(info1);
     TFIG* myfig2=(struct figure*)(info2);
     return compare_dois_TFIG(myfig1, myfig2);
 }
 
 void* destruir_INFO(void* info){
-    TFIG* p = (struct figure*)(info);
-    destruir_TFIG(p);
+    TFIG* fig = (struct figure*)(info);
+    destruir_TFIG(fig);
     //free(p);
     return NULL;
 }
@@ -247,6 +210,21 @@ typedef struct arvoreGenerica{
     struct arvoreGenerica* proxIrmao;
 } TAG;
 
+
+TAG* inicializa_AG(){
+  return NULL;
+}
+
+TAG* criaNo_AG(void* info){
+    TAG* novo = (TAG*)malloc(sizeof(TAG));
+    novo->info=info;
+    novo->primFilho=NULL;
+    novo->proxIrmao=NULL;
+    return novo;
+}
+
+
+
 TAG* destruir_No_AG(TAG* pNo){
     destruir_INFO(pNo->info);
     //free(pNo->info);
@@ -260,24 +238,13 @@ TAG* destruir_tudo_AG(TAG* pNo){
     destruir_tudo_AG(pNo->primFilho);
     destruir_tudo_AG(pNo->primFilho);    
     if (pNo){
-        printf("destruyendo.\n");
+        //printf("destruyendo.\n");
         return destruir_No_AG(pNo);
     } 
     return NULL;
 }
 
 
-TAG* inicializa_AG(){
-  return NULL;
-}
-
-TAG* criaNo_AG(void* info){
-    TAG* novo = (TAG*)malloc(sizeof(TAG));
-    novo->info=info;
-    novo->primFilho=NULL;
-    novo->proxIrmao=NULL;
-    return novo;
-}
 
 int localizaEndereco_AG(TAG* pNo, void* pInfo, TAG** ppNoReturn, myTypeCmpFunc pCmpFunc ){ // pNo y ppNo
     if (!pNo) return 0;
@@ -292,20 +259,21 @@ int localizaEndereco_AG(TAG* pNo, void* pInfo, TAG** ppNoReturn, myTypeCmpFunc p
     return value;
 }
 
-int localizaEnderecoAntecesor_AG(TAG* tag, void* pInfo, TAG** ppAnt, myTypeCmpFunc pCmpFunc){
+
+int localizaEnderecoAntecesor_AG(TAG* tag, void* pInfo, TAG** ppNoReturn, myTypeCmpFunc pCmpFunc){
     if (!tag) return 0;
     if (tag->proxIrmao && (pCmpFunc(tag->proxIrmao->info,pInfo)==1) ){
-        *ppAnt = tag;
+        *ppNoReturn = tag;
         return 1;
     } 
     if (tag->primFilho && (pCmpFunc(tag->primFilho->info,pInfo)==1) ){
-        *ppAnt = tag;
+        *ppNoReturn = tag;
         return 1;
     }
     int value=0;//  0 nao encontrado
                 //  1 da certo
-    value+=localizaEnderecoAntecesor_AG(tag->primFilho, pInfo, ppAnt, pCmpFunc);
-    value+=localizaEnderecoAntecesor_AG(tag->proxIrmao, pInfo, ppAnt, pCmpFunc);
+    value+=localizaEnderecoAntecesor_AG(tag->primFilho, pInfo, ppNoReturn, pCmpFunc);
+    value+=localizaEnderecoAntecesor_AG(tag->proxIrmao, pInfo, ppNoReturn, pCmpFunc);
     return value;
 }
 
@@ -361,7 +329,6 @@ TAG* retira_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc
     TAG** ppAP1 = (TAG**)malloc(sizeof(TAG*));
     TAG** ppAP2 = (TAG**)malloc(sizeof(TAG*));
 
-    
     if(localizaEndereco_AG(atemp, pAnt_pai, ppP1, pCmpFunc)==0){
         printf("pAnt_pai no encontrado\n");
         return tag;
@@ -370,7 +337,6 @@ TAG* retira_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc
         printf("pNovo_pai no encontrado\n");
         return tag;
     }
-
     if(localizaEnderecoAntecesor_AG(atemp, pAnt_pai, ppAP1, pCmpFunc)==0){
         printf("pai de pAnt_pai no encontrado\n");
         return tag;
@@ -380,18 +346,17 @@ TAG* retira_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc
         return tag;
     }
 
-
     TAG* p1 = *ppP1;
     TAG* p2 = *ppP2;
     TAG* pp1 = *ppAP1;
     TAG* pp2 = *ppAP2;
     
-
     if( buscar_TAG(p1,p2->info,pCmpFunc)==1 ){
         //caso especial.
         printf("no es posible retirar este elemento\n");
         return tag;
-    }    
+    }   
+
     if(pp1->proxIrmao == p1)
         pp1->proxIrmao = NULL;
     else if(pp1->primFilho == p1)
@@ -423,7 +388,7 @@ TAG* retira_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc
 /************************************** CARREGA ARQUIVO **************************************/
 /*********************************************************************************************/
 
-TFIG** cria_vetor_Arquivo(int tam){
+TFIG** cria_vetor_fig_Arquivo(int tam){
 	TFIG** vec = (TFIG**) malloc(sizeof(TFIG*)*tam);
 	for (int i=0; i<tam; i++){
 		vec[i] = NULL;
@@ -431,7 +396,18 @@ TFIG** cria_vetor_Arquivo(int tam){
 	return vec;
 }
 
-TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){ 
+int* cria_vetor_pais_Arquivo(int tam){
+	int* vec = (int*) malloc(sizeof(int)*tam);
+	for (int i=0; i<tam; i++){
+		vec[i] = -1;
+	}
+	return vec;
+}
+
+
+
+TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){
+    tag=NULL; 
     FILE* file = fopen(fileName, "r"); 
     if(file==NULL){
         printf("error ao abrir arquivo!!");
@@ -452,17 +428,15 @@ TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){
     int numline = 0;
     TFIG** vecFIG = NULL;
     int* vecPais = NULL;
-    vecFIG  = cria_vetor_Arquivo(tam); // os elementos sao tudos NULL
-    vecPais = (int*)malloc(sizeof(int)*tam);
-
-    for(int i=0;i<tam;i++) vecPais[i]=-1; // os elementos sao tudos -1
+    vecFIG  = cria_vetor_fig_Arquivo(tam); // os elementos sao tudos NULL
+    vecPais = cria_vetor_pais_Arquivo(tam); // os elemntos sao tudos -1
 
     file = fopen(fileName, "r");
     while (fgets(line, sizeof(line), file)){
         
         char mat_input[NUM_DIV_INPUT][BUFFER_CHAR];
         for(int i=0;i<NUM_DIV_INPUT;i++){
-            memset(mat_input[i], 0, sizeof(mat_input[i]));
+            memset(mat_input[i], 0, sizeof(mat_input[i])); // setting to zero
         }
 		int j = 0, k = 0;
 		for (int l=0; l<strlen(line); l++){
@@ -494,7 +468,7 @@ TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){
             mat_input[k][j]=line[l];
 			j++;
 		}
-        if(k<4){
+        if(k<4 || k>6){
             continue;
         }	
         int cod = atoi(mat_input[0]);					
@@ -511,12 +485,15 @@ TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){
 
     	numline++;
     }
-
     fclose(file);
-
+    if(numline>tam){
+        exit(-1);
+        return tag;
+    }
+    //iterando vecFIG e vecPais
     for(int i=0;i<numline;i++){
-        TFIG* temp_pai = cria_TFIG_vacio(vecPais[i]);
-        tag = insere_AG(tag, vecFIG[i],(void*)temp_pai , pCmpFunc);
+        void* temp_pai = cria_INFO_vacio(vecPais[i]);
+        tag = insere_AG(tag, (void*)vecFIG[i],(void*)temp_pai , pCmpFunc);
         destruir_TFIG(temp_pai);
     }
 
@@ -525,6 +502,8 @@ TAG* carregaDesde_Arquivo(TAG* tag, char* fileName, myTypeCmpFunc pCmpFunc){
 
     return tag;
 }
+
+
 
 
 
@@ -618,8 +597,6 @@ void imprimirArquivo_AG_DOT(TAG* tag, char* new_filename){
 
 
 
-
-
 int main(){
 
     TAG* tag=NULL;
@@ -630,10 +607,10 @@ int main(){
     }
     imprimirArquivo_AG_DOT(tag,"arvore_AG.dot");
 
-    TFIG* pNo = cria_INFO_vacio(4);
-    TFIG* novo = cria_INFO_vacio(6789);
+    void* pNo = cria_INFO_vacio(4);
+    void* pNovo = cria_INFO_vacio(2);
 
-    tag = retira_AG(tag, (void*)pNo, (void*)novo, pCmpFunc);
+    tag = retira_AG(tag, pNo, pNovo, pCmpFunc);
     imprimirArquivo_AG_DOT(tag,"arvore_AG_retirado.dot");
 
     //tag=destruir_tudo_AG(tag);
