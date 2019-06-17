@@ -33,7 +33,7 @@ TFIG* inicializa_TFIG(){
 TFIG* destruir_TFIG(TFIG* fig){
     free(fig->nome);
     free(fig->parameters);
-    //free(fig);
+    free(fig);
     return NULL;
 } 
 
@@ -145,6 +145,29 @@ TFIG* cria_TFIG_vacio(int cod){
     return novo; 
 }
 
+int mudarCod_TFIG(TFIG* fig, int cod){
+    if(!fig){
+        return 0;
+    }
+    fig->cod=cod;
+    return 1;
+}
+
+int mudarTipo_TFIG(TFIG* fig, char* nome, int* parameters ){
+    if(!nome && !parameters){
+        return 0; //error
+    }
+    free(fig->nome);
+    free(fig->parameters);
+    int len_nome=strlen(nome);
+    fig->nome=(char*)malloc(sizeof(char)*len_nome);
+    strcpy(fig->nome,nome);
+    fig->parameters=parameters;
+    fig->area=calcula_area_TFIG(nome,parameters);
+
+    return 1;
+}
+
 
 /*********************************************************************************************/
 /************************************** Interface INFO (void*) ********************************/
@@ -163,23 +186,51 @@ void* cria_INFO_vacio(int cod){
 }
 
 int ler_cod_INFO(void* info){
+    if(!info){
+        return 0;
+    }    
     TFIG* temp=(struct figure*)(info);
     return ler_cod_TFIG(temp);
 }
 
 char* ler_nome_INFO(void* info){
+    if(!info){
+        return 0;
+    }
     TFIG* temp=(struct figure*)(info);
     return ler_nome_TFIG(temp);
 }
 
 int* ler_parameters_INFO(void* info){
+    if(!info){
+        return 0;
+    }
     TFIG* temp=(struct figure*)(info);
     return ler_parameters_TFIG(temp);
 }
 
 double ler_area_INFO(void* info){
+    if(!info){
+        return 0;
+    }
     TFIG* temp=(struct figure*)(info);
     return ler_area_TFIG(info);
+}
+
+int mudarCod_INFO(void* info, int cod){
+    if(!info){
+        return 0;
+    }
+    TFIG* fig = (struct figure*)(info);
+    return mudarCod_TFIG(fig,cod);
+}
+
+int mudarTipo_INFO(void* info, char* nome, int* parameters ){
+    if(!info){
+        return 0;
+    }
+    TFIG* fig = (struct figure*)(info);
+    return mudarTipo_TFIG(fig,nome,parameters);
 }
 
 int compare_dois_INFO(void* info1, void* info2){
@@ -193,11 +244,9 @@ int compare_dois_INFO(void* info1, void* info2){
 
 void* destruir_INFO(void* info){
     TFIG* fig = (struct figure*)(info);
-    destruir_TFIG(fig);
-    //free(p);
-    return NULL;
+    fig=destruir_TFIG(fig);
+    return (void*)fig;
 }
-
 
 
 /*********************************************************************************************/
@@ -223,28 +272,21 @@ TAG* criaNo_AG(void* info){
     return novo;
 }
 
-
-
 TAG* destruir_No_AG(TAG* pNo){
-    destruir_INFO(pNo->info);
-    //free(pNo->info);
     pNo->proxIrmao = NULL;
-    pNo->proxIrmao = NULL;
-    return NULL;
+    pNo->primFilho = NULL;
+    pNo=destruir_INFO(pNo->info);
+    return pNo;
 }
 
 TAG* destruir_tudo_AG(TAG* pNo){
     if (!pNo) return NULL;
     destruir_tudo_AG(pNo->primFilho);
-    destruir_tudo_AG(pNo->primFilho);    
+    destruir_tudo_AG(pNo->proxIrmao);    
     if (pNo){
-        //printf("destruyendo.\n");
         return destruir_No_AG(pNo);
     } 
-    return NULL;
 }
-
-
 
 int localizaEndereco_AG(TAG* pNo, void* pInfo, TAG** ppNoReturn, myTypeCmpFunc pCmpFunc ){ // pNo y ppNo
     if (!pNo) return 0;
@@ -277,6 +319,29 @@ int localizaEnderecoAntecesor_AG(TAG* tag, void* pInfo, TAG** ppNoReturn, myType
     return value;
 }
 
+void trocar_No_AG(TAG* tag, void* info1, void* info2, myTypeCmpFunc pCmpFunc){
+    if(!tag && !info1 && !info2){
+        return; //error  NULL
+    }
+    
+    TAG** ppNoReturn1=(TAG**)malloc(sizeof(TAG*)); 
+    if(localizaEndereco_AG(tag, info1, ppNoReturn1, pCmpFunc)==0){
+        printf("info1 no encontrado\n");
+        return;
+    }
+    TAG** ppNoReturn2=(TAG**)malloc(sizeof(TAG*)); 
+    if(localizaEndereco_AG(tag, info2, ppNoReturn2, pCmpFunc)==0){
+        printf("info2 no encontrado\n");
+        return;
+    }
+    TAG* pNoInfo1 = (*ppNoReturn1);
+    TAG* pNoInfo2 = (*ppNoReturn2);
+
+        void* temp=pNoInfo1->info;
+    pNoInfo1->info=pNoInfo2->info;
+    pNoInfo2->info=temp;
+    return;
+}
 
 
 TAG* insere_AG(TAG* tag, void* info, void* info_pai, myTypeCmpFunc pCmpFunc ){
@@ -607,15 +672,35 @@ int main(){
     }
     imprimirArquivo_AG_DOT(tag,"arvore_AG.dot");
 
-    void* pNo = cria_INFO_vacio(4);
-    void* pNovo = cria_INFO_vacio(2);
+    
+    
+    //examples trocar
+    void* info1 = cria_INFO_vacio(1);
+    void* info2 = cria_INFO_vacio(37);
 
-    tag = retira_AG(tag, pNo, pNovo, pCmpFunc);
+    trocar_No_AG(tag,info1,info2,pCmpFunc);
+    imprimirArquivo_AG_DOT(tag,"arvore_AG_trocado.dot");
+
+
+    //example retirar
+    void* pInfo = cria_INFO_vacio(4);
+    void* pInfoNovo = cria_INFO_vacio(2);
+    tag = retira_AG(tag, pInfo, pInfoNovo, pCmpFunc);
     imprimirArquivo_AG_DOT(tag,"arvore_AG_retirado.dot");
 
-    //tag=destruir_tudo_AG(tag);
-    //printf("%d \n",tag);
-    //imprimirArquivo_AG_DOT(tag,"vacio.dot");
+
+    //cambiar elementos
+    mudarCod_INFO(tag->info, 999);
+    //mudarTipo_INFO(void* info, char* nome, int* parameters );
+    imprimirArquivo_AG_DOT(tag,"arvore_AG_cod.dot");
+
+
+
+    //example destruir
+    tag=destruir_tudo_AG(tag);
+    printf("%d \n",tag);
+    imprimirArquivo_AG_DOT(tag,"vacio.dot");
+    
 
     return 0;
 
