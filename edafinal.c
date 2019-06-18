@@ -564,6 +564,103 @@ TAG* retira_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc
 }
 
 
+
+
+
+
+
+
+TAG* retira_e_alocarPai_AG(TAG* tag, void* pAnt_pai, void* pNovo_pai, myTypeCmpFunc pCmpFunc){
+    TAG* atemp = tag;
+    TAG** ppP1 = (TAG**)malloc(sizeof(TAG*));
+    TAG** ppP2 = (TAG**)malloc(sizeof(TAG*));
+    TAG** ppAP1 = (TAG**)malloc(sizeof(TAG*));
+    TAG** ppAP2 = (TAG**)malloc(sizeof(TAG*));
+
+    if(localizaEndereco_AG(atemp, pAnt_pai, ppP1, pCmpFunc)==0){
+        printf("pAnt_pai no encontrado\n");
+        return tag;
+    }
+    if(localizaEndereco_AG(atemp, pNovo_pai, ppP2, pCmpFunc)==0){
+        printf("pNovo_pai no encontrado\n");
+        return tag;
+    }
+    if(localizaEnderecoAntecesor_AG(atemp, pAnt_pai, ppAP1, pCmpFunc)==0){
+        printf("pai de pAnt_pai no encontrado\n");
+        return tag;
+    }
+    if(localizaEnderecoAntecesor_AG(atemp, pNovo_pai, ppAP2, pCmpFunc)==0){
+        printf("pai de pNovo no encontrado\n");
+        return tag;
+    }
+
+    TAG* p1 = *ppP1;
+    TAG* p2 = *ppP2;
+    TAG* pp1 = *ppAP1;
+    TAG* pp2 = *ppAP2;
+    
+    if( buscar_TAG(p1,p2->info,pCmpFunc)==1 ){
+        //caso especial.
+        printf("no es posible retirar este elemento\n");
+        return tag;
+    }   
+
+    if(pp1->proxIrmao == p1)
+        pp1->proxIrmao = p1->proxIrmao;
+    else if(pp1->primFilho == p1)
+        pp1->primFilho = p1->proxIrmao;
+
+    TAG* temp = p2;
+    if (!(temp->primFilho))
+        temp->primFilho = p1->primFilho;
+    else{
+        temp = temp->primFilho;
+        while(temp->proxIrmao) temp = temp->proxIrmao;
+        temp->proxIrmao = p1->primFilho;
+    }
+    p1->proxIrmao = NULL;
+    p1->primFilho = NULL;   
+    p1=destruir_No_AG(p1);
+    return tag;
+}
+
+
+
+
+TAG* retira_sem_alocarPai_AG(TAG* tag, void* pAnt_pai, myTypeCmpFunc pCmpFunc){
+    TAG* atemp = tag;
+    TAG** ppP1 = (TAG**)malloc(sizeof(TAG*));
+    TAG** ppAP1 = (TAG**)malloc(sizeof(TAG*));
+    if(localizaEndereco_AG(atemp, pAnt_pai, ppP1, pCmpFunc)==0){
+        printf("pAnt_pai no encontrado\n");
+        return tag;
+    }
+    if(localizaEnderecoAntecesor_AG(atemp, pAnt_pai, ppAP1, pCmpFunc)==0){
+        printf("pai de pAnt_pai no encontrado\n");
+        return tag;
+    }
+
+    TAG* p1 = *ppP1;
+    TAG* pp1 = *ppAP1;
+    
+    if(p1->primFilho){
+        //nao tem filhos.
+        printf("no es posible retirar este elementom porque tiene descendencia.\n");
+        return tag;
+    }   
+
+    if(pp1->proxIrmao == p1)
+        pp1->proxIrmao = p1->proxIrmao;
+    else if(pp1->primFilho == p1)
+        pp1->primFilho = p1->proxIrmao;
+
+    p1->proxIrmao = NULL;
+    p1->primFilho = NULL;   
+    p1=destruir_No_AG(p1);
+    return tag;
+}
+
+
 /*********************************************************************************************/
 /************************************** CARREGA ARQUIVO **************************************/
 /*********************************************************************************************/
@@ -768,6 +865,7 @@ void imprimirArquivo_AG_DOT(TAG* tag, char* new_filename){
 
     fclose(fp);
 }
+
 
 /*********************************************************************************************/
 /************************************** FUNCOES DO MENU **************************************/
@@ -1277,6 +1375,8 @@ void intercambia_figura_MENUAG(TAG* tag, myTypeCmpFunc pCmpFunc){
     
 
 
+
+
 /*********************************************************************************************/
 /***************************************** ARVORE AVL ****************************************/
 /*********************************************************************************************/
@@ -1469,6 +1569,10 @@ TAVL* retirar_figura_MENUAVL(TAVL* tavl){
 
     return tavl;
 }
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////
