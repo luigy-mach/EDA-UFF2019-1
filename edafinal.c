@@ -70,6 +70,28 @@ int menor_que_TFIG(TFIG* fig1, TFIG* fig2){
     }
 }
 
+int maior_igual_que_TFIG(TFIG* fig1, TFIG* fig2){
+    if(!fig1 || !fig2)
+        return -1;
+    if(fig1->cod >= fig2->cod){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+int menor_igual_que_TFIG(TFIG* fig1, TFIG* fig2){
+    if(!fig1 || !fig2)
+        return -1;
+    if(fig1->cod <= fig2->cod){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
 int quan_parameters_TFIG(char* nome){
     if(strcmp(nome,"QUA")==0){//QUA
         return 1;
@@ -298,6 +320,24 @@ int menor_que_INFO(void* info1, void* info2){
     TFIG* myfig1=(struct figure*)(info1);
     TFIG* myfig2=(struct figure*)(info2);
     return menor_que_TFIG(myfig1, myfig2);
+}
+
+int maior_igual_que_INFO(void* info1, void* info2){
+    if(!info1 || !info2){
+        return -1;
+    }
+    TFIG* myfig1=(struct figure*)(info1);
+    TFIG* myfig2=(struct figure*)(info2);
+    return maior_igual_que_TFIG(myfig1, myfig2);
+}
+
+int menor_igual_que_INFO(void* info1, void* info2){
+    if(!info1 || !info2){
+        return -1;
+    }
+    TFIG* myfig1=(struct figure*)(info1);
+    TFIG* myfig2=(struct figure*)(info2);
+    return menor_igual_que_TFIG(myfig1, myfig2);
 }
 
 int verifica_nome_INFO(char* nome){
@@ -1175,6 +1215,67 @@ void alterar_tipo_figura_MENUAG(TAG* tag, myTypeCmpFunc pCmpFunc){
     limpar_janela02();  
 }
 
+void intercambia_figura_MENUAG(TAG* tag, myTypeCmpFunc pCmpFunc){
+    limpar_janela01();
+
+    printf("(h) Intercambiar figuras\n");
+    printf("=======================================================================================\n");
+
+    void* pInfo1;
+    void* pInfo2;
+
+    int cod1;
+    while(1){
+        printf("\t(>) Insira o código duma figura:\n");
+        printf("\t  (ex: 6 )\n");
+        printf("\t  (ex: 4 )\n");
+        
+        char codigo[10];
+        printf("\t>>     ");
+        scanf(" %s",codigo);    
+
+        cod1 = atoi(codigo);
+
+        pInfo1 = cria_INFO_vacio(cod1);
+
+        if (buscar_TAG(tag, pInfo1, pCmpFunc) == 1){
+            break;
+        } else {
+            printf("\tCodigo de figura nao encontrado\n");
+        }
+    }
+
+    int cod2;
+    while(1){
+        printf("\t(>) Insira o código da otra figura:\n");
+        printf("\t  (ex: 8 )\n");
+        printf("\t  (ex: 12 )\n");
+        
+        char codigo[10];
+        printf("\t>>     ");
+        scanf(" %s",codigo);    
+
+        cod2 = atoi(codigo);
+
+        pInfo2 = cria_INFO_vacio(cod2);
+
+        if (buscar_TAG(tag, pInfo2, pCmpFunc) == 1){
+            break;
+        } else {
+            printf("\tCodigo de figura nao encontrado\n");
+        }
+    }
+
+    trocar_No_AG(tag, pInfo1, pInfo2, pCmpFunc);
+
+    printf("=======================================================================================\n");
+    printf("\n");
+    printf("\tFiguras intercambiadas!\n");
+
+    limpar_janela02();
+}
+    
+
 
 /*********************************************************************************************/
 /***************************************** ARVORE AVL ****************************************/
@@ -1242,7 +1343,7 @@ static TAVL* rot_dir_esq_AVL( TAVL* k1 ){
 TAVL* insere_AVL(void* info, TAVL* tavl, myTypeCmpFunc pMaiorQue, myTypeCmpFunc pMenorQue){    
     if (tavl == NULL){        
         tavl = cria_nodo_AVL(info);     
-    }    ///***********************
+    }   
     else if (pMenorQue(info,tavl->info) == 1){ 
         tavl->esq = insere_AVL(info, tavl->esq, pMaiorQue, pMenorQue );
         if( calc_alt_AVL( tavl->esq ) - calc_alt_AVL( tavl->dir ) == 2 )
@@ -1250,7 +1351,7 @@ TAVL* insere_AVL(void* info, TAVL* tavl, myTypeCmpFunc pMaiorQue, myTypeCmpFunc 
                 tavl = rot_dir_AVL( tavl );
             else
                 tavl = rot_esq_dir_AVL( tavl );
-    } else if (pMaiorQue(info,tavl->info) == 1){//////////--------****
+    } else if (pMaiorQue(info,tavl->info) == 1){ //////////--------****
         tavl->dir = insere_AVL(info, tavl->dir, pMaiorQue, pMenorQue);
         if( calc_alt_AVL( tavl->dir ) - calc_alt_AVL( tavl->esq ) == 2 )
             if( pMaiorQue(info,tavl->dir->info) == 1)
@@ -1261,6 +1362,122 @@ TAVL* insere_AVL(void* info, TAVL* tavl, myTypeCmpFunc pMaiorQue, myTypeCmpFunc 
     tavl->alt = max_AVL( calc_alt_AVL( tavl->esq ), calc_alt_AVL( tavl->dir ) ) + 1;
     return tavl;
 }
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+int calc_alt_retira_AVL(TAVL* tavl){
+    int lh,rh;
+    if(tavl==NULL) return(0);
+    if(tavl->esq==NULL) lh=0;
+    else lh=1+tavl->esq->alt;
+    if(tavl->dir==NULL) rh=0;
+    else rh=1+tavl->dir->alt;
+    if(lh>rh) return(lh);
+    return(rh);
+}
+
+
+int FB_AVL(TAVL* tavl){
+    int lh,rh;
+    if(tavl==NULL) return(0);
+    if(tavl->esq==NULL) lh=0;
+    else lh=1+tavl->esq->alt;
+    if(tavl->dir==NULL) rh=0;
+    else rh=1+tavl->dir->alt;
+    return(lh-rh);
+}
+
+TAVL* retira_AVL(void* info, TAVL* tavl, myTypeCmpFunc pMaiorQue, myTypeCmpFunc pMenorQue){       
+    TAVL *p;
+
+    if(tavl==NULL)
+        return NULL;
+    else
+        if(pMaiorQue(info,tavl->info) == 1){
+            tavl->dir=retira_AVL(info,tavl->dir,pMaiorQue,pMenorQue);
+            if(FB_AVL(tavl)==2)
+                if(FB_AVL(tavl->esq)>=0)
+                    tavl=rot_dir_AVL(tavl);
+                else
+                    tavl=rot_esq_dir_AVL(tavl);
+        }
+        else
+            if(pMenorQue(info,tavl->info) == 1){
+                    tavl->esq=retira_AVL(info,tavl->esq,pMaiorQue,pMenorQue);
+                    if(FB_AVL(tavl)==-2)//Rebalance during windup
+                        if(FB_AVL(tavl->dir)<=0)
+                            tavl=rot_esq_AVL(tavl);
+                        else
+                            tavl=rot_dir_esq_AVL(tavl);
+            }
+            else{
+                //info to be deleted is found
+                  if(tavl->esq != NULL){
+                      p=tavl->esq;
+                      while(p->dir != NULL) p=p->dir;
+                      tavl->info=p->info;
+                      tavl->esq=retira_AVL(p->info,tavl->esq,pMaiorQue,pMenorQue);
+                      if(FB_AVL(tavl)== -2)//Rebalance during windup
+                        if(FB_AVL(tavl->dir)<=0)
+                            tavl=rot_esq_AVL(tavl);
+                        else
+                            tavl=rot_dir_esq_AVL(tavl);
+                  }
+                  else{
+                      TAVL *x = tavl;
+                      tavl = tavl->dir;
+                      free(x);
+                      return(tavl);
+                  }
+            }
+    tavl->alt=calc_alt_retira_AVL(tavl);
+    return(tavl);
+}
+
+
+TAVL* retirar_figura_MENUAVL(TAVL* tavl){
+    limpar_janela01();
+
+    printf("(d) Retirar figuras\n");
+    printf("=======================================================================================\n");
+    printf("\t(>) Insira código da figura para retirar:\n");
+    printf("\t  (ex: 9 )\n");
+    printf("\t  (ex: 2 )\n");
+    
+    char codigo[10];
+    printf("\t>>     ");
+    scanf(" %s",codigo);
+    printf("=======================================================================================\n");
+
+    int cod = atoi(codigo);
+
+    myTypeCmpFunc pMaiorQue = maior_que_INFO;
+    myTypeCmpFunc pMenorQue = menor_que_INFO;
+
+    void* pInfo = cria_INFO_vacio(cod);
+
+    tavl = retira_AVL(pInfo, tavl, pMaiorQue, pMenorQue);
+
+    printf("\n");
+    printf("\tFigura retirada!\n");
+
+    limpar_janela02();
+
+    return tavl;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 
 TAVL* transforma_para_AVL(TAG* tag, TAVL* tavl){
     if (!tag) return tavl;
@@ -1385,14 +1602,16 @@ TAVL* gerar_arvore_menuAVL(TAG* tag, TAVL* tavl, myTypeCmpFunc pCmpFunc){
                 break;
 
             case 'b' :
+                tavl = retirar_figura_MENUAVL(tavl);
                 getchar();
                 break;
 
             case 'c' :
-                libera_AVL(tavl);
-                tavl = inicializa_AVL();
-                tavl = transforma_para_AVL(tag, tavl);
+                //libera_AVL(tavl);
+                //tavl = inicializa_AVL();
+                //tavl = transforma_para_AVL(tag, tavl);
                 imprimir_arvore_menuAVL(tavl);
+                
                 break;
 
             case 'd' :
@@ -1636,8 +1855,7 @@ int main(){
         printf("\t(h) Intercambiar figuras\n");
         printf("\t(i) Transformar a árvore genérica numa árvore AVL\n");
         printf("\t(j) Transformar a árvore genérica numa árvore B\n");
-        printf("\t(k) Sair do programa\n");
-        //printf("\t(i) Cria arvore novo\n");        
+        printf("\t(k) Sair do programa\n");     
         printf("=======================================================================================\n");
         printf("Insira sua opção: \n");
         printf("\t >>  ");
@@ -1676,6 +1894,11 @@ int main(){
 
             case 'g' :
                 alterar_dim_figura_MENUAG(tag, pCmpFunc);
+                getchar();
+                break;
+
+            case 'h' :
+                intercambia_figura_MENUAG(tag, pCmpFunc);
                 getchar();
                 break;
 
@@ -1729,37 +1952,6 @@ int main(){
     }
 
     tag = destruir_tudo_AG(tag);
-
-    
-    //examples trocar
-    /*void* info1 = cria_INFO_vacio(1);
-    void* info2 = cria_INFO_vacio(37);
-
-    trocar_No_AG(tag,info1,info2,pCmpFunc);
-    imprimirArquivo_AG_DOT(tag,"arvore_AG_trocado.dot");
-
-
-    //example retirar
-    void* pInfo = cria_INFO_vacio(4);
-    void* pInfoNovo = cria_INFO_vacio(2);
-    tag = retira_AG(tag, pInfo, pInfoNovo, pCmpFunc);
-    imprimirArquivo_AG_DOT(tag,"arvore_AG_retirado.dot");
-
-
-    //cambiar elementos
-    mudarCod_INFO(tag->info, 999);
-    //mudarTipo_INFO(void* info, char* nome, int* parameters );
-    imprimirArquivo_AG_DOT(tag,"arvore_AG_cod.dot");
-
-
-
-    //example destruir
-    tag=destruir_tudo_AG(tag);
-    printf("%d \n",tag);
-    imprimirArquivo_AG_DOT(tag,"vacio.dot");*/
-
-
-   
 
     return 0;
 
