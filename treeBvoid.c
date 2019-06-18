@@ -653,8 +653,71 @@ TAB* retira(TAB* arv, void* k, int t){
 }
 
 
+
+
+
+void imprimeInfoB(TAB *a, int andar, FILE *fp, int mynum, int t){
+  if(a){
+    int i,j;
+    int pchaves=(t*2);
+    fprintf(fp, "%d%d [shape=record,label=\"{{",andar,mynum*pchaves);
+    for (i=0; i<pchaves-1; i++){
+        fprintf(fp,"<f%d>",i+(mynum*pchaves));
+        if (i<=a->nchaves-1){
+            fprintf(fp,"| %d |", ler_cod_INFO(a->chave[i]));
+        } else {
+            fprintf(fp,"| - |");
+        }
+    }
+    fprintf(fp,"<f%d>}}\"];\n",i+(mynum*pchaves));
+    j=0;
+    for(i=0; i<(t*2); i++){
+        imprimeInfoB(a->filho[i], andar+1, fp, i+(mynum*pchaves),t);
+    }
+  }
+}
+
+void imprimeFlechaB(TAB *a, int andar, FILE *fp, int mynum, int t){
+  if(a){
+    int i,j;
+    int pchaves=(t*2);
+
+    for (i=0; i<pchaves; i++){
+        if(a->filho[i]){
+            fprintf(fp,"%d%d:<f%d> -> %d%d:<f%d>;\n", andar, mynum*pchaves, i+(mynum*pchaves), andar+1, (i+(mynum*pchaves))*pchaves , (i+(mynum*pchaves))*pchaves );  
+        }
+    }
+    for(i=0; i<pchaves; i++){
+        imprimeFlechaB(a->filho[i],andar+1,fp,i+(mynum*pchaves),t);  
+    }
+  }
+}
+
+void imprimir_arquivoB(TAB* t3, char* new_filename, int grado){
+    FILE *fp = fopen(new_filename, "w");
+    if (fp == NULL){
+        puts("Arquivo nao abierto\n");
+        return;
+    }
+    fprintf(fp,"digraph structs {\n");
+    fprintf(fp,"nodesep=.5;\n");
+    fprintf(fp,"node [shape=record];\n");
+    imprimeInfoB(t3,0,fp,0,grado);
+    fprintf(fp, "\n");
+    imprimeFlechaB(t3,0,fp,0,grado);
+    fprintf(fp, "}" );
+
+    fclose(fp);
+}
+
+
+
+
+
+
+
 int main(int argc, char *argv[]){
-  int t=2;
+  int grado=2;
   TAB * arvore = Inicializa();
   int num = 0, from, to;
   while(num != -1){
@@ -663,7 +726,7 @@ int main(int argc, char *argv[]){
     if(num == -9){
       scanf("%d", &from);
       void* temp=cria_INFO_vacio(from);
-      arvore = retira(arvore, temp, t);
+      arvore = retira(arvore, temp, grado);
       Imprime(arvore,0);
     }
     else if(num == -1){
@@ -675,10 +738,12 @@ int main(int argc, char *argv[]){
     else if(!num){
       printf("\n");
       Imprime(arvore,0);
+      imprimir_arquivoB(arvore,"arvoreBB.dot",grado);
+
     }
     else {
       void* temp=cria_INFO_vacio(num);
-      arvore = Insere(arvore, temp, t);
+      arvore = Insere(arvore, temp, grado);
     }
     printf("\n\n");
   }
