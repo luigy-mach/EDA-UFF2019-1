@@ -1,0 +1,87 @@
+digraph structs {
+nodesep=.5;
+node [shape=record];
+1 [shape=record,label="{<f0> COD:1 |{{TRI|b: 3, h: 2|Area: 3.00 }|<f1> Irmao}|<f2> Filhos}"];
+2 [shape=record,label="{<f0> COD:2 |{{RET|b: 3, h: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+3 [shape=record,label="{<f0> COD:3 |{{TRA|b: 2, B: 3, h: 4|Area: 10.00 }|<f1> Irmao}|<f2> Filhos}"];
+4 [shape=record,label="{<f0> COD:4 |{{CIR|r: 4|Area: 50.26 }|<f1> Irmao}|<f2> Filhos}"];
+10 [shape=record,label="{<f0> COD:10 |{{TRI|b: 1, h: 2|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+11 [shape=record,label="{<f0> COD:11 |{{TRI|b: 3, h: 2|Area: 3.00 }|<f1> Irmao}|<f2> Filhos}"];
+269 [shape=record,label="{<f0> COD:269 |{{RET|b: 3, h: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+4444 [shape=record,label="{<f0> COD:4444 |{{CIR|r: 4|Area: 50.26 }|<f1> Irmao}|<f2> Filhos}"];
+234 [shape=record,label="{<f0> COD:234 |{{RET|b: 3, h: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+37 [shape=record,label="{<f0> COD:37 |{{TRA|b: 2, B: 3, h: 4|Area: 10.00 }|<f1> Irmao}|<f2> Filhos}"];
+456 [shape=record,label="{<f0> COD:456 |{{CIR|r: 4|Area: 50.26 }|<f1> Irmao}|<f2> Filhos}"];
+101 [shape=record,label="{<f0> COD:101 |{{TRI|b: 1, h: 2|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+555 [shape=record,label="{<f0> COD:555 |{{QUA|l: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+5 [shape=record,label="{<f0> COD:5 |{{QUA|l: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+9 [shape=record,label="{<f0> COD:9 |{{QUA|l: 1|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+69 [shape=record,label="{<f0> COD:69 |{{QUA|l: 1|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+25 [shape=record,label="{<f0> COD:25 |{{QUA|l: 3|Area: 9.00 }|<f1> Irmao}|<f2> Filhos}"];
+901 [shape=record,label="{<f0> COD:901 |{{QUA|l: 1|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+100 [shape=record,label="{<f0> COD:100 |{{TRI|b: 1, h: 2|Area: 1.00 }|<f1> Irmao}|<f2> Filhos}"];
+7 [shape=record,label="{<f0> COD:7 |{{TRA|b: 1, B: 2, h: 3|Area: 4.50 }|<f1> Irmao}|<f2> Filhos}"];
+8 [shape=record,label="{<f0> COD:8 |{{CIR|r: 2|Area: 12.57 }|<f1> Irmao}|<f2> Filhos}"];
+71 [shape=record,label="{<f0> COD:71 |{{TRA|b: 1, B: 2, h: 3|Area: 4.50 }|<f1> Irmao}|<f2> Filhos}"];
+777 [shape=record,label="{<f0> COD:777 |{{TRA|b: 1, B: 2, h: 3|Area: 4.50 }|<f1> Irmao}|<f2> Filhos}"];
+894 [shape=record,label="{<f0> COD:894 |{{CIR|r: 2|Area: 12.57 }|<f1> Irmao}|<f2> Filhos}"];
+6 [shape=record,label="{<f0> COD:6 |{{RET|b: 2, h: 2|Area: 4.00 }|<f1> Irmao}|<f2> Filhos}"];
+66 [shape=record,label="{<f0> COD:66 |{{RET|b: 2, h: 2|Area: 4.00 }|<f1> Irmao}|<f2> Filhos}"];
+6789 [shape=record,label="{<f0> COD:6789 |{{RET|b: 2, h: 2|Area: 4.00 }|<f1> Irmao}|<f2> Filhos}"];
+
+1  -> 2  -> 6 ;
+66 ;
+6789 ;
+
+3 ;
+4  -> 5  -> 7 ;
+8 ;
+71 ;
+777 ;
+894 ;
+
+9 ;
+69  -> 100 ;
+
+25 ;
+901 ;
+
+10 ;
+11 ;
+269 ;
+4444  -> 555 ;
+
+234 ;
+37 ;
+456 ;
+101 ;
+
+
+
+{rank=same; 2-> 3-> 4-> 10-> 11-> 269-> 4444-> 234-> 37-> 456 -> 101;}
+
+
+
+
+
+
+
+
+
+{rank=same; 5-> 9-> 69-> 25 -> 901;}
+
+
+
+
+
+{rank=same; 7-> 8-> 71-> 777 -> 894;}
+
+
+
+
+
+
+{rank=same; 6-> 66 -> 6789;}
+
+
+}
